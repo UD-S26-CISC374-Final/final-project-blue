@@ -38,6 +38,9 @@ const config: Phaser.Types.Core.GameConfig = {
         pixelArt: false,
         antialias: true,
     },
+    dom: {
+        createContainer: true,
+    },
 };
 
 const StartGame = (parent: string) => {
