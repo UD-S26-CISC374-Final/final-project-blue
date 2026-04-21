@@ -15,22 +15,106 @@ export class Level1 extends Scene {
     spawny: number;
     platforms!: Phaser.Physics.Arcade.StaticGroup;
     currentPlatform?: number;
+    platformList!: Map<number, Phaser.Physics.Arcade.Image>;
+    lines!: Phaser.GameObjects.Graphics;
 
     constructor() {
         super("Level1");
     }
 
+    drawConnection(
+        graphics: Phaser.GameObjects.Graphics,
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        width: number,
+        height: number,
+        fill = true,
+    ) {
+        graphics.lineStyle(2, 0x000000);
+        graphics.fillStyle(0x000000);
+        graphics.lineBetween(x1, y1, x2, y2);
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+        // Line unit vector
+        const udx = dx / lineLength;
+        const udy = dy / lineLength;
+
+        // Perpendicular unit vector
+        const pdx = -udy;
+        const pdy = udx;
+
+        // Arrowhead base vertices
+        const x3 = x2 - height * udx + width * pdx;
+        const y3 = y2 - height * udy + width * pdy;
+        const x4 = x2 - height * udx - width * pdx;
+        const y4 = y2 - height * udy - width * pdy;
+
+        if (fill) {
+            graphics.fillTriangle(x2, y2, x3, y3, x4, y4);
+        } else {
+            graphics
+                .beginPath()
+                .moveTo(x3, y3)
+                .lineTo(x2, y2)
+                .lineTo(x4, y4)
+                .strokePath();
+        }
+    }
+
+    processCommand(command: string) {
+        const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
+
+        if (!match) return;
+
+        const from = parseInt(match[1]);
+        const direction = match[2];
+        const to = parseInt(match[3]);
+        const fromPlatform = this.platformList.get(from);
+        const toPlatform = this.platformList.get(to);
+
+        if (!fromPlatform || !toPlatform) return;
+        fromPlatform.setData(direction, toPlatform);
+
+        // Draw connection
+        const graphics = this.add.graphics();
+
+        this.drawConnection(
+            graphics,
+            fromPlatform.x,
+            fromPlatform.y,
+            toPlatform.x,
+            toPlatform.y,
+            15,
+            30,
+            false,
+        );
+
+        //Linked List Stuff
+    }
+
     landOnPlatform(
-        player: Phaser.Types.Physics.Arcade.GameObjectWithBody,
-        platform: Phaser.GameObjects.GameObject,
+        player:
+            | Phaser.Physics.Arcade.Body
+            | Phaser.Physics.Arcade.StaticBody
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile,
+        platform:
+            | Phaser.Physics.Arcade.Body
+            | Phaser.Physics.Arcade.StaticBody
+            | Phaser.Types.Physics.Arcade.GameObjectWithBody
+            | Phaser.Tilemaps.Tile,
     ) {
         const currPlayer = player as Phaser.Physics.Arcade.Sprite;
         if (!currPlayer.body!.blocked.down) return;
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
         const number: number = currPlatform.getData("number") as number;
         this.currentPlatform = number;
-
-        console.log("on ", number);
     }
 
     createPlatform(x: number, y: number, number: number) {
@@ -41,9 +125,16 @@ export class Level1 extends Scene {
         ) as Phaser.Physics.Arcade.Image;
         hayPlatform.setDisplaySize(150, 32).refreshBody();
 
-        this.physics.add.collider(this.player, hayPlatform);
+        //Monitor movement of Blue onto the platform - test which platform he's on
+        this.physics.add.collider(
+            this.player,
+            this.platforms,
+            (player, platform) => {
+                this.landOnPlatform(player, platform);
+            },
+        );
 
-        //Add number
+        //The number above the platforms
         hayPlatform.setData("number", number);
         this.add
             .text(x, y - 40, number.toString(), {
@@ -51,6 +142,10 @@ export class Level1 extends Scene {
                 color: "#000000",
             })
             .setOrigin(0.5);
+
+        hayPlatform.setData("next", null);
+        hayPlatform.setData("prev", null);
+        this.platformList.set(number, hayPlatform);
     }
 
     preload() {
@@ -63,6 +158,7 @@ export class Level1 extends Scene {
 
     create() {
         const { width, height } = this.scale;
+        this.platformList = new Map(); //New list
         this.spawnx = 100;
         this.spawny = 150;
         this.player = this.physics.add.sprite(100, 150, "dude");
@@ -72,6 +168,8 @@ export class Level1 extends Scene {
 
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
+
+        this.lines = this.add.graphics();
 
         // animations
         this.anims.create({
@@ -101,10 +199,12 @@ export class Level1 extends Scene {
         });
 
         this.platforms = this.physics.add.staticGroup();
-        this.createPlatform(this.spawnx, this.spawny + 100, 1);
+        this.createPlatform(this.spawnx, this.spawny + 150, 1);
+        this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
 
         this.camera = this.cameras.main;
         this.cameras.main.setBounds(0, 0, 2000, 600);
+        this.cameras.main.startFollow(this.player);
         this.camera.setBackgroundColor(0xffffff);
 
         //Text Box
@@ -133,6 +233,7 @@ export class Level1 extends Scene {
         enter.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 const value = enter.value;
+                this.processCommand(value); //HERE
                 console.log(value);
             }
         });
@@ -172,8 +273,18 @@ export class Level1 extends Scene {
             this.player.setVelocityY(-330);
         }
 
+        //Respawn
         if (this.player.y > this.scale.height - 100) {
             this.player.setPosition(this.spawnx, this.spawny);
+            this.player.setTint(0xff0000);
+            this.time.delayedCall(
+                500,
+                () => {
+                    this.player.clearTint();
+                },
+                [],
+                this,
+            );
         }
     }
 
