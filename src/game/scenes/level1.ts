@@ -32,8 +32,6 @@ export class Level1 extends Scene {
         height: number,
         fill = true,
     ) {
-        graphics.lineStyle(2, 0x000000);
-        graphics.fillStyle(0x000000);
         graphics.lineBetween(x1, y1, x2, y2);
 
         const dx = x2 - x1;
@@ -67,35 +65,64 @@ export class Level1 extends Scene {
         }
     }
 
+    drawAll() {
+        this.lines.clear(); //fun fact - this resets even LINE STYLES. :')
+        this.lines.lineStyle(2, 0x000000);
+        this.lines.fillStyle(0x000000);
+        this.lines.setDepth(1);
+
+        this.platformList.forEach((platform: Phaser.Physics.Arcade.Image) => {
+            const next = platform.getData(
+                "next",
+            ) as Phaser.Physics.Arcade.Image | null;
+            const prev = platform.getData(
+                "prev",
+            ) as Phaser.Physics.Arcade.Image | null;
+
+            if (next) {
+                this.drawConnection(
+                    this.lines,
+                    platform.x + 50,
+                    platform.y,
+                    next.x,
+                    next.y,
+                    15,
+                    30,
+                    false,
+                );
+            }
+            if (prev) {
+                this.drawConnection(
+                    this.lines,
+                    platform.x - 50,
+                    platform.y,
+                    prev.x,
+                    prev.y,
+                    15,
+                    30,
+                    false,
+                );
+            }
+        });
+    }
+
     processCommand(command: string) {
         const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
 
         if (!match) return;
-
+        //Breaking down the match command into smaller bits - from, direction (next/prev) and to
         const from = parseInt(match[1]);
         const direction = match[2];
         const to = parseInt(match[3]);
+
+        //Map works with keys! So get the from key for the current platform and likewise with to
         const fromPlatform = this.platformList.get(from);
         const toPlatform = this.platformList.get(to);
 
         if (!fromPlatform || !toPlatform) return;
         fromPlatform.setData(direction, toPlatform);
 
-        // Draw connection
-        const graphics = this.add.graphics();
-
-        this.drawConnection(
-            graphics,
-            fromPlatform.x,
-            fromPlatform.y,
-            toPlatform.x,
-            toPlatform.y,
-            15,
-            30,
-            false,
-        );
-
-        //Linked List Stuff
+        this.drawAll();
     }
 
     landOnPlatform(
@@ -158,6 +185,7 @@ export class Level1 extends Scene {
 
     create() {
         const { width, height } = this.scale;
+        this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
         this.spawnx = 100;
         this.spawny = 150;
@@ -199,8 +227,10 @@ export class Level1 extends Scene {
         });
 
         this.platforms = this.physics.add.staticGroup();
+        //PLATFORMS ARE MADE HERE!!!
         this.createPlatform(this.spawnx, this.spawny + 150, 1);
         this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
+        this.createPlatform(this.spawnx + 550, this.spawny + 200, 3);
 
         this.camera = this.cameras.main;
         this.cameras.main.setBounds(0, 0, 2000, 600);
