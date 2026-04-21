@@ -11,14 +11,51 @@ export class Level1 extends Scene {
     fpsText: FpsText;
     player!: Phaser.Physics.Arcade.Sprite;
     cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+    spawnx: number;
+    spawny: number;
+    platforms!: Phaser.Physics.Arcade.StaticGroup;
+    currentPlatform?: number;
 
     constructor() {
         super("Level1");
     }
 
+    landOnPlatform(
+        player: Phaser.Types.Physics.Arcade.GameObjectWithBody,
+        platform: Phaser.GameObjects.GameObject,
+    ) {
+        const currPlayer = player as Phaser.Physics.Arcade.Sprite;
+        if (!currPlayer.body!.blocked.down) return;
+        const currPlatform = platform as Phaser.Physics.Arcade.Image;
+        const number: number = currPlatform.getData("number") as number;
+        this.currentPlatform = number;
+
+        console.log("on ", number);
+    }
+
+    createPlatform(x: number, y: number, number: number) {
+        const hayPlatform = this.platforms.create(
+            x,
+            y,
+            "hay",
+        ) as Phaser.Physics.Arcade.Image;
+        hayPlatform.setDisplaySize(150, 32).refreshBody();
+
+        this.physics.add.collider(this.player, hayPlatform);
+
+        //Add number
+        hayPlatform.setData("number", number);
+        this.add
+            .text(x, y - 40, number.toString(), {
+                fontSize: "20px",
+                color: "#000000",
+            })
+            .setOrigin(0.5);
+    }
+
     preload() {
         this.load.image("hay", "assets/hay.png");
-        this.load.spritesheet("dude", "../../public/assets/dude.png", {
+        this.load.spritesheet("dude", "assets/dude.png", {
             frameWidth: 32,
             frameHeight: 48,
         });
@@ -26,6 +63,8 @@ export class Level1 extends Scene {
 
     create() {
         const { width, height } = this.scale;
+        this.spawnx = 100;
+        this.spawny = 150;
         this.player = this.physics.add.sprite(100, 150, "dude");
         this.player.setFrame(5);
 
@@ -61,22 +100,12 @@ export class Level1 extends Scene {
             repeat: -1,
         });
 
-        const hayPlatform1 = this.physics.add
-            .staticImage(100 + 75, 400, "hay")
-            .setDisplaySize(150, 32)
-            .refreshBody();
-        const hayPlatform2 = this.physics.add
-            .staticImage(350 + 75, 320, "hay")
-            .setDisplaySize(150, 32)
-            .refreshBody();
-
-        this.physics.add.collider(this.player, hayPlatform1);
-        this.physics.add.collider(this.player, hayPlatform2);
+        this.platforms = this.physics.add.staticGroup();
+        this.createPlatform(this.spawnx, this.spawny + 100, 1);
 
         this.camera = this.cameras.main;
         this.cameras.main.setBounds(0, 0, 2000, 600);
         this.camera.setBackgroundColor(0xffffff);
-        // this.lines = this.add.graphics();
 
         //Text Box
         const commandBox = this.add.dom(width / 2, height - 50).createFromHTML(`
@@ -141,6 +170,10 @@ export class Level1 extends Scene {
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
             this.player.setVelocityY(-330);
+        }
+
+        if (this.player.y > this.scale.height - 100) {
+            this.player.setPosition(this.spawnx, this.spawny);
         }
     }
 
