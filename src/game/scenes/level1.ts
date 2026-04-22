@@ -18,9 +18,43 @@ export class Level1 extends Scene {
     platformList!: Map<number, Phaser.Physics.Arcade.Image>;
     lines!: Phaser.GameObjects.Graphics;
     private lastPlatform: Phaser.Physics.Arcade.Image | null = null;
+    health = 100;
+    maxHealth = 100;
+    healthBarBg!: Phaser.GameObjects.Graphics;
+    healthBarFill!: Phaser.GameObjects.Graphics;
 
     constructor() {
         super("Level1");
+    }
+
+    takeDamage(amount: number) {
+        this.health = Math.max(0, this.health - amount);
+        this.drawHealthBar();
+    }
+    heal(amount: number) {
+        this.health = Math.min(this.maxHealth, this.health + amount);
+        this.drawHealthBar();
+    }
+    drawHealthBar() {
+        const x = 780;
+        const y = 20;
+        const width = 200;
+        const height = 20;
+
+        const percent = this.health / this.maxHealth;
+
+        // background (red/empty)
+        this.healthBarBg.clear();
+        this.healthBarBg.fillStyle(0xcf8782);
+        this.healthBarBg.fillRect(x, y, width, height);
+
+        // foreground (green/current HP)
+        this.healthBarFill.clear();
+        this.healthBarFill.fillStyle(0x82cf93);
+        this.healthBarFill.fillRect(x, y, width * percent, height);
+
+        this.healthBarBg.setScrollFactor(0);
+        this.healthBarFill.setScrollFactor(0);
     }
 
     updatePlatformStates() {
@@ -179,6 +213,11 @@ export class Level1 extends Scene {
         if (!currPlayer.body!.blocked.down) return;
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
         this.currentPlatform = currPlatform;
+
+        if (this.currentPlatform === this.platformList.get(5)) {
+            this.scene.start("GameOver");
+        }
+
         this.updatePlatformStates();
     }
 
@@ -196,11 +235,8 @@ export class Level1 extends Scene {
             this.platforms,
             (player, platform) => {
                 const p = platform as Phaser.Physics.Arcade.Image;
-
                 if (this.lastPlatform === p) return;
-
                 this.lastPlatform = p;
-
                 this.landOnPlatform(player, platform);
             },
             undefined,
@@ -211,8 +247,9 @@ export class Level1 extends Scene {
         hayPlatform.setData("number", number);
         this.add
             .text(x, y - 40, number.toString(), {
-                fontSize: "20px",
+                fontSize: "25px",
                 color: "#000000",
+                fontFamily: "ChickinFont",
             })
             .setOrigin(0.5);
 
@@ -240,7 +277,7 @@ export class Level1 extends Scene {
 
         this.cursors = this.input.keyboard!.createCursorKeys();
 
-        this.player.setBounce(0.2);
+        this.player.setBounce(0.35);
         this.player.setCollideWorldBounds(true);
 
         this.lines = this.add.graphics();
@@ -276,7 +313,10 @@ export class Level1 extends Scene {
         //PLATFORMS ARE MADE HERE!!!
         this.createPlatform(this.spawnx, this.spawny + 150, 1);
         this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
-        this.createPlatform(this.spawnx + 550, this.spawny + 200, 3);
+        this.createPlatform(this.spawnx + 650, this.spawny + 350, 3);
+        this.createPlatform(this.spawnx + 950, this.spawny + 300, 4);
+        this.createPlatform(this.spawnx + 1350, this.spawny + 350, 5);
+
         // Disable ALL first
         this.platformList.forEach((platform) => {
             if (platform.body) {
@@ -293,7 +333,8 @@ export class Level1 extends Scene {
         }
 
         this.camera = this.cameras.main;
-        this.cameras.main.setBounds(0, 0, 2000, 600);
+        this.cameras.main.setBounds(0, 0, 1800, 700);
+        this.physics.world.setBounds(0, 0, 1800, 700);
         this.cameras.main.startFollow(this.player);
         this.camera.setBackgroundColor(0xffffff);
 
@@ -324,9 +365,12 @@ export class Level1 extends Scene {
             if (event.key === "Enter") {
                 const value = enter.value;
                 this.processCommand(value); //HERE
-                console.log(value);
             }
         });
+
+        this.healthBarBg = this.add.graphics();
+        this.healthBarFill = this.add.graphics();
+        this.drawHealthBar();
 
         EventBus.emit("current-scene-ready", this);
     }
@@ -363,9 +407,14 @@ export class Level1 extends Scene {
             this.player.setVelocityY(-330);
         }
 
-        //Respawn
+        //Fall + Respawn
         if (this.player.y > this.scale.height - 100) {
-            this.player.setPosition(this.spawnx, this.spawny);
+            this.player.setPosition(
+                this.currentPlatform!.x,
+                this.currentPlatform!.y - 80,
+            );
+
+            this.takeDamage(20);
             this.player.setTint(0xff0000);
             this.time.delayedCall(
                 500,
@@ -383,12 +432,12 @@ export class Level1 extends Scene {
             "next",
         ) as Phaser.Physics.Arcade.Image | null;
 
-        // Always evaluate rule
-        const allowed = !!next;
-
-        // Optional: visual feedback
         if (next) {
             next.setTint(0x00ff00);
+        }
+
+        if (this.health <= 0) {
+            this.scene.start("GameOver");
         }
     }
 
