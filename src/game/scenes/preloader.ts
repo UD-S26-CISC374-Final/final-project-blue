@@ -24,11 +24,7 @@ export class Preloader extends Scene {
 
     preload() {
         //  Load the assets for the game - Replace with your own assets
-        this.load.font(
-            "ChickinFont",
-            "../../public/assets/ChickinFont.otf",
-            "truetype",
-        );
+        this.load.font("ChickinFont", "/assets/ChickinFont.otf", "opentype");
         this.load.setPath("assets");
         this.load.image("logo", "logo.png");
         this.load.image("star", "star.png");
@@ -40,6 +36,6 @@ export class Preloader extends Scene {
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start("Level1");
+        this.scene.start("MainMenu");
     }
 }

@@ -35,6 +35,12 @@ export class MainMenu extends Scene implements ChangeableScene {
             fontSize: "70px",
             backgroundColor: "#af9165",
             fontFamily: "ChickinFont",
+            padding: {
+                left: 12,
+                right: 12,
+                top: 6,
+                bottom: 6,
+            },
         });
         playButton.setInteractive();
         playButton.on("pointerdown", () => {
