@@ -12,7 +12,7 @@ export class MainMenu extends Scene implements ChangeableScene {
     }
 
     preload() {
-        this.load.image("mmbackground", "../../public/assets/lcmainmenu.png");
+        this.load.image("mmbackground", "assets/lcmainmenu.png");
     }
 
     create() {

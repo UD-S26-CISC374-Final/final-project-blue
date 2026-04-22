@@ -336,10 +336,10 @@ export class Level1 extends Scene {
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
         this.createPlatform(this.spawnx, this.spawny + 150, 1);
-        this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
-        this.createPlatform(this.spawnx + 650, this.spawny + 350, 3);
-        this.createPlatform(this.spawnx + 950, this.spawny + 300, 4);
-        this.createPlatform(this.spawnx + 1350, this.spawny + 350, 5);
+        this.createPlatform(this.spawnx + 300, this.spawny + 500, 2);
+        this.createPlatform(this.spawnx + 300, this.spawny + 250, 3);
+        this.createPlatform(this.spawnx + 550, this.spawny + 500, 4);
+        this.createPlatform(this.spawnx + 550, this.spawny + 250, 5);
 
         // Disable ALL first
         this.platformList.forEach((platform) => {
