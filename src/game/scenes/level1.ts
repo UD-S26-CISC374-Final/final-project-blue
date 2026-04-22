@@ -14,12 +14,48 @@ export class Level1 extends Scene {
     spawnx: number;
     spawny: number;
     platforms!: Phaser.Physics.Arcade.StaticGroup;
-    currentPlatform?: number;
+    currentPlatform?: Phaser.Physics.Arcade.Image;
     platformList!: Map<number, Phaser.Physics.Arcade.Image>;
     lines!: Phaser.GameObjects.Graphics;
+    private lastPlatform: Phaser.Physics.Arcade.Image | null = null;
 
     constructor() {
         super("Level1");
+    }
+
+    updatePlatformStates() {
+        // Turn OFF all platforms first
+        this.platformList.forEach((platform) => {
+            if (platform.body) {
+                platform.body.enable = false;
+                platform.clearTint();
+            }
+        });
+
+        if (!this.currentPlatform) return;
+
+        // Current platform stays solid
+        if (this.currentPlatform.body) {
+            this.currentPlatform.body.enable = true;
+        }
+
+        // Enable .next
+        const next = this.currentPlatform.getData(
+            "next",
+        ) as Phaser.Physics.Arcade.Image | null;
+
+        if (next && next.body) {
+            next.body.enable = true;
+        }
+
+        // Enable .prev
+        const prev = this.currentPlatform.getData(
+            "prev",
+        ) as Phaser.Physics.Arcade.Image | null;
+        if (prev && prev.body) {
+            prev.body.enable = true;
+            prev.setTint(0xffaa00);
+        }
     }
 
     drawConnection(
@@ -121,8 +157,10 @@ export class Level1 extends Scene {
 
         if (!fromPlatform || !toPlatform) return;
         fromPlatform.setData(direction, toPlatform);
+        fromPlatform.setData(direction, toPlatform);
 
         this.drawAll();
+        this.updatePlatformStates();
     }
 
     landOnPlatform(
@@ -140,8 +178,8 @@ export class Level1 extends Scene {
         const currPlayer = player as Phaser.Physics.Arcade.Sprite;
         if (!currPlayer.body!.blocked.down) return;
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
-        const number: number = currPlatform.getData("number") as number;
-        this.currentPlatform = number;
+        this.currentPlatform = currPlatform;
+        this.updatePlatformStates();
     }
 
     createPlatform(x: number, y: number, number: number) {
@@ -157,8 +195,16 @@ export class Level1 extends Scene {
             this.player,
             this.platforms,
             (player, platform) => {
+                const p = platform as Phaser.Physics.Arcade.Image;
+
+                if (this.lastPlatform === p) return;
+
+                this.lastPlatform = p;
+
                 this.landOnPlatform(player, platform);
             },
+            undefined,
+            this,
         );
 
         //The number above the platforms
@@ -231,6 +277,20 @@ export class Level1 extends Scene {
         this.createPlatform(this.spawnx, this.spawny + 150, 1);
         this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
         this.createPlatform(this.spawnx + 550, this.spawny + 200, 3);
+        // Disable ALL first
+        this.platformList.forEach((platform) => {
+            if (platform.body) {
+                platform.body.enable = false;
+            }
+        });
+
+        // Enable starting platform
+        const startPlatform = this.platformList.get(1);
+
+        if (startPlatform && startPlatform.body) {
+            startPlatform.body.enable = true;
+            this.currentPlatform = startPlatform;
+        }
 
         this.camera = this.cameras.main;
         this.cameras.main.setBounds(0, 0, 2000, 600);
@@ -315,6 +375,20 @@ export class Level1 extends Scene {
                 [],
                 this,
             );
+        }
+
+        if (!this.currentPlatform) return;
+
+        const next = this.currentPlatform.getData(
+            "next",
+        ) as Phaser.Physics.Arcade.Image | null;
+
+        // Always evaluate rule
+        const allowed = !!next;
+
+        // Optional: visual feedback
+        if (next) {
+            next.setTint(0x00ff00);
         }
     }
 

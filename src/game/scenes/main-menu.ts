@@ -11,17 +11,27 @@ export class MainMenu extends Scene implements ChangeableScene {
         super("MainMenu");
     }
 
+    preload() {
+        this.load.image("mmbackground", "../../public/assets/lcmainmenu.png");
+    }
+
     create() {
         //The Title
-        this.title = this.add.text(512, 300, "Linkin Chickin", {
+        this.title = this.add.text(512, 150, "Linkin' Chickin", {
             fontSize: "150px",
-            color: "#040903",
+            color: "floralwhite",
             fontFamily: "ChickinFont",
         });
         this.title.setOrigin(0.5, 0.5);
+        const bg = this.add.image(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "mmbackground",
+        );
+        bg.setDepth(-10);
 
         //Play Button
-        const playButton = this.add.text(450, 400, "Play", {
+        const playButton = this.add.text(450, 550, "Play", {
             fontSize: "70px",
             backgroundColor: "#af9165",
             fontFamily: "ChickinFont",
