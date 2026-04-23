@@ -28,6 +28,12 @@ export class Level2 extends Scene {
         | Phaser.Sound.HTML5AudioSound
         | Phaser.Sound.WebAudioSound;
 
+    items!: Phaser.Physics.Arcade.StaticGroup;
+    collectedCount = 0;
+    totalItems = 0;
+    finishSlab!: Phaser.Physics.Arcade.Image;
+    uiIcons: Phaser.GameObjects.Image[] = [];
+
     constructor() {
         super("Level2");
     }
@@ -279,6 +285,70 @@ export class Level2 extends Scene {
         this.platformList.set(number, hayPlatform);
     }
 
+    createItemOnPlatform(platformNumber: number, itemKey: string) {
+        const platform = this.platformList.get(platformNumber);
+
+        if (!platform) return;
+
+        const item = this.items.create(
+            platform.x,
+            platform.y - 50,
+            itemKey,
+        ) as Phaser.Physics.Arcade.Image;
+
+        item.setDisplaySize(30, 30);
+        item.setData("collected", false);
+
+        this.totalItems++;
+    }
+
+    createUIIcons() {
+        const startX = 30;
+        const startY = 30;
+        const spacing = 40;
+
+        for (let i = 0; i < this.totalItems; i++) {
+            const icon = this.add.image(
+                startX + i * spacing,
+                startY,
+                "gem-silhouette",
+            );
+
+            icon.setScrollFactor(0);
+
+            this.uiIcons.push(icon);
+        }
+    }
+    updateUI() {
+        const index = this.collectedCount;
+
+        if (this.uiIcons[index]) {
+            this.uiIcons[index].setTexture("gem");
+        }
+    }
+
+    createFinishSlab(platformNumber: number) {
+        const platform = this.platformList.get(platformNumber);
+
+        if (!platform) return;
+
+        this.finishSlab = this.physics.add.staticImage(
+            platform.x,
+            platform.y - 50,
+            "slab",
+        );
+
+        this.finishSlab.setDisplaySize(150, 32);
+
+        // Start locked
+        this.finishSlab.body!.enable = true;
+    }
+    unlockFinishSlab() {
+        this.finishSlab.disableBody(true, true);
+
+        console.log("Finish unlocked!");
+    }
+
     preload() {
         this.load.audio("tweet", "assets/tweet.mp3");
         this.load.image("hay", "assets/hay.png");
@@ -286,6 +356,8 @@ export class Level2 extends Scene {
             frameWidth: 32,
             frameHeight: 48,
         });
+        this.load.image("key", "assets/star.png");
+        this.load.image("slab", "assets/platform.png");
     }
 
     create() {
@@ -300,6 +372,7 @@ export class Level2 extends Scene {
         this.player.setFrame(5);
         this.hurtChirp = this.sound.add("tweet");
 
+        this.items = this.physics.add.staticGroup();
         this.cursors = this.input.keyboard!.createCursorKeys();
 
         this.player.setBounce(0.35);
@@ -342,6 +415,35 @@ export class Level2 extends Scene {
         this.createPlatform(this.spawnx + 740, this.spawny + 100, 4);
         this.createPlatform(this.spawnx + 750, this.spawny + 250, 5);
         this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
+
+        this.createItemOnPlatform(2, "key");
+        this.createItemOnPlatform(3, "key");
+        this.createItemOnPlatform(4, "key");
+        this.createItemOnPlatform(5, "key");
+        this.createFinishSlab(6);
+
+        //to collect time
+        this.physics.add.overlap(
+            this.player,
+            this.items,
+            (_player, item) => {
+                const currItem = item as Phaser.Physics.Arcade.Image;
+
+                if (currItem.getData("collected")) return;
+
+                currItem.setData("collected", true);
+                currItem.disableBody(true, true);
+                this.collectedCount++;
+                this.updateUI();
+
+                // Unlock finish if done
+                if (this.collectedCount === this.totalItems) {
+                    this.unlockFinishSlab();
+                }
+            },
+            undefined,
+            this,
+        );
 
         // Disable ALL first
         this.platformList.forEach((platform) => {

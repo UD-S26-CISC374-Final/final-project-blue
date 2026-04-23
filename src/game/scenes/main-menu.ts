@@ -44,17 +44,36 @@ export class MainMenu extends Scene implements ChangeableScene {
         });
         playButton.setInteractive();
         playButton.on("pointerdown", () => {
-            this.cameras.main.fadeOut(1000, 0, 0, 0);
-            this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.changeScene();
+            this.tweens.add({
+                targets: this.title,
+                alpha: 0,
+                duration: 1000,
+                ease: "Linear",
+
+                onComplete: () => {
+                    this.changeScene();
+                },
+            });
+            this.tweens.add({
+                targets: playButton,
+                alpha: 0,
+                duration: 1000,
+                ease: "Linear",
+
+                onComplete: () => {
+                    this.changeScene();
+                },
             });
         });
 
+        this.cameras.main.setBackgroundColor(0x000000);
         EventBus.emit("current-scene-ready", this);
     }
 
     changeScene() {
-        //this.scale.startFullscreen();
-        this.scene.start("Level2");
+        this.cameras.main.fadeOut(500, 0, 0, 0);
+        this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.scene.start("StoryboardStart");
+        });
     }
 }
