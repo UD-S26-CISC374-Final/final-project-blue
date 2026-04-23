@@ -283,12 +283,16 @@ export class Level1 extends Scene {
         this.load.image("hay", "assets/hay.png");
         this.load.spritesheet("dude", "assets/dude.png", {
             frameWidth: 32,
-            frameHeight: 48,
+            frameHeight: 42,
         });
+        this.load.image("s1bg", "assets/stage1bg.png");
     }
 
     create() {
         const { width, height } = this.scale;
+        const s1bg = this.add.image(0, 0, "s1bg").setOrigin(0);
+        s1bg.setDepth(-10);
+        s1bg.setDisplaySize(1800, 700);
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
         this.health = 100;
@@ -297,9 +301,22 @@ export class Level1 extends Scene {
         this.spawny = 150;
         this.player = this.physics.add.sprite(100, 150, "dude");
         this.player.setFrame(5);
+        this.textures.get("dude").setFilter(Phaser.Textures.FilterMode.LINEAR);
+        this.player.setDisplaySize(32, 42);
         this.hurtChirp = this.sound.add("tweet");
 
         this.cursors = this.input.keyboard!.createCursorKeys();
+
+        this.add.text(
+            20,
+            700,
+            "You can't jump to other platforms... unless they're connected! Type 1.next=2 in the box below. Then, try to jump using the arrow keys! Try to make it to Platform 5.",
+            {
+                color: "black",
+                fontSize: "15px",
+                wordWrap: { width: 500 },
+            },
+        );
 
         this.player.setBounce(0.35);
         this.player.setCollideWorldBounds(true);

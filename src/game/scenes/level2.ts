@@ -354,14 +354,30 @@ export class Level2 extends Scene {
         this.load.image("hay", "assets/hay.png");
         this.load.spritesheet("dude", "assets/dude.png", {
             frameWidth: 32,
-            frameHeight: 48,
+            frameHeight: 42,
         });
         this.load.image("key", "assets/star.png");
         this.load.image("slab", "assets/platform.png");
+        this.load.image("s1bg", "assets/stage1bg.png");
     }
 
     create() {
         const { width, height } = this.scale;
+        this.add.text(
+            20,
+            700,
+            "Need to travel backwards? Use .prev! Try moving to a platform using .next and move to a previous platform. For example, 5.prev=2. Collect all the stars and land on Platform 6!",
+            {
+                color: "black",
+                fontSize: "15px",
+                wordWrap: { width: 500 },
+            },
+        );
+
+        const s1bg = this.add.image(0, 0, "s1bg").setOrigin(0);
+        s1bg.setDepth(-10);
+        s1bg.setDisplaySize(1800, 700);
+
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
         this.health = 100;
@@ -370,6 +386,8 @@ export class Level2 extends Scene {
         this.spawny = 150;
         this.player = this.physics.add.sprite(100, 150, "dude");
         this.player.setFrame(5);
+        this.textures.get("dude").setFilter(Phaser.Textures.FilterMode.LINEAR);
+        this.player.setDisplaySize(32, 42);
         this.hurtChirp = this.sound.add("tweet");
 
         this.items = this.physics.add.staticGroup();
