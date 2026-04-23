@@ -4,7 +4,7 @@ import { Scene } from "phaser";
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
 
-export class Level1 extends Scene {
+export class Level2 extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     phaserLogo: PhaserLogo;
@@ -29,7 +29,7 @@ export class Level1 extends Scene {
         | Phaser.Sound.WebAudioSound;
 
     constructor() {
-        super("Level1");
+        super("Level2");
     }
 
     showLevelComplete() {
@@ -234,7 +234,8 @@ export class Level1 extends Scene {
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
         this.currentPlatform = currPlatform;
 
-        if (this.currentPlatform === this.platformList.get(5)) {
+        //CHANGE4NEWLEVEL
+        if (this.currentPlatform === this.platformList.get(6)) {
             this.showLevelComplete();
         }
 
@@ -336,10 +337,11 @@ export class Level1 extends Scene {
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
         this.createPlatform(this.spawnx, this.spawny + 150, 1);
-        this.createPlatform(this.spawnx + 300, this.spawny + 500, 2);
-        this.createPlatform(this.spawnx + 300, this.spawny + 250, 3);
-        this.createPlatform(this.spawnx + 550, this.spawny + 500, 4);
-        this.createPlatform(this.spawnx + 550, this.spawny + 250, 5);
+        this.createPlatform(this.spawnx + 400, this.spawny + 300, 2);
+        this.createPlatform(this.spawnx + 350, this.spawny + 50, 3);
+        this.createPlatform(this.spawnx + 740, this.spawny + 100, 4);
+        this.createPlatform(this.spawnx + 750, this.spawny + 250, 5);
+        this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
 
         // Disable ALL first
         this.platformList.forEach((platform) => {

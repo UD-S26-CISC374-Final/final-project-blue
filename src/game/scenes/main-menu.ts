@@ -55,6 +55,6 @@ export class MainMenu extends Scene implements ChangeableScene {
 
     changeScene() {
         //this.scale.startFullscreen();
-        this.scene.start("Level1");
+        this.scene.start("Level2");
     }
 }
