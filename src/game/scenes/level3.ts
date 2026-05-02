@@ -70,7 +70,7 @@ export class Level3 extends Scene {
 
         this.items = this.physics.add.staticGroup();
 
-        // 🧱 NEW PLATFORM LAYOUT (same mechanic, different environment)
+        // NEW PLATFORM LAYOUT (same mechanic, different environment)
         this.createPlatform(100, 300, 1);
         this.createPlatform(350, 500, 2);
         this.createPlatform(600, 200, 3);
@@ -79,7 +79,7 @@ export class Level3 extends Scene {
         this.createPlatform(1500, 500, 6);
         this.createPlatform(1800, 300, 7); // GOAL
 
-        // 💎 Items (same mechanic)
+        // Items (same mechanic)
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
         this.createItemOnPlatform(4, "key");
