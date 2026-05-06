@@ -70,14 +70,13 @@ export class Level3 extends Scene {
         this.items = this.physics.add.staticGroup();
 
         // NEW LAYOUT
-        this.createPlatform(100, 300, 1);
-        this.createPlatform(350, 500, 2);
-        this.createPlatform(600, 200, 3);
-        this.createPlatform(900, 400, 4);
-        this.createPlatform(1200, 250, 5);
-        this.createPlatform(1500, 500, 6);
-        this.createPlatform(1800, 300, 7);
-
+        this.createPlatform(150, 400, 1);
+        this.createPlatform(400, 550, 2);
+        this.createPlatform(650, 350, 3);
+        this.createPlatform(900, 600, 4);
+        this.createPlatform(1150, 300, 5);
+        this.createPlatform(1400, 500, 6);
+        this.createPlatform(1700, 350, 7);
         // Items
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
