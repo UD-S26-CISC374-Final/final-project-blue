@@ -62,6 +62,11 @@ export class Level1 extends Scene {
 
         const percent = this.health / this.maxHealth;
 
+        //black border
+        this.add
+            .rectangle(x + 100, y + 10, 200, 20)
+            .setStrokeStyle(2, 0x000000);
+
         // background (red/empty)
         this.healthBarBg.clear();
         this.healthBarBg.fillStyle(0xcf8782);
@@ -72,6 +77,7 @@ export class Level1 extends Scene {
         this.healthBarFill.fillStyle(0x82cf93);
         this.healthBarFill.fillRect(x, y, width * percent, height);
 
+        //make sure it scrolls with the screen
         this.healthBarBg.setScrollFactor(0);
         this.healthBarFill.setScrollFactor(0);
     }
@@ -197,9 +203,28 @@ export class Level1 extends Scene {
     }
 
     processCommand(command: string) {
-        const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
+        const match = command.match(/node(\d+)->(next|prev)\s*=\s*node(\d+)/);
 
-        if (!match) return;
+        if (!match) {
+            const warn = this.add
+                .text(600, 750, "Invalid Input!", {
+                    fontSize: "25px",
+                    color: "#c72828",
+                    fontFamily: "ChickinFont",
+                })
+                .setOrigin(0.5);
+
+            this.tweens.add({
+                targets: warn,
+                alpha: 0, // Target alpha
+                duration: 3000,
+                ease: "Linear",
+                onComplete: () => {
+                    warn.destroy();
+                },
+            });
+            return;
+        }
         //Breaking down the match command into smaller bits - from, direction (next/prev) and to
         const from = parseInt(match[1]);
         const direction = match[2];
@@ -250,6 +275,7 @@ export class Level1 extends Scene {
         hayPlatform.setDisplaySize(150, 32).refreshBody();
 
         //Background -
+        this.add.rectangle(x, y, 150, 32).setStrokeStyle(2, 0xffffff);
 
         //Monitor movement of Blue onto the platform - test which platform he's on
         this.physics.add.collider(
@@ -259,6 +285,7 @@ export class Level1 extends Scene {
                 const p = platform as Phaser.Physics.Arcade.Image;
                 if (this.lastPlatform === p) return;
                 this.lastPlatform = p;
+
                 this.landOnPlatform(player, platform);
             },
             undefined,
@@ -268,7 +295,7 @@ export class Level1 extends Scene {
         //The number above the platforms
         hayPlatform.setData("number", number);
         this.add
-            .text(x, y - 40, number.toString(), {
+            .text(x, y, "node" + number.toString(), {
                 fontSize: "25px",
                 color: "#000000",
                 fontFamily: "ChickinFont",
@@ -295,6 +322,7 @@ export class Level1 extends Scene {
         const s1bg = this.add.image(0, 0, "s1bg").setOrigin(0);
         s1bg.setDepth(-10);
         s1bg.setDisplaySize(1800, 700);
+        s1bg.setScale(1.1);
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
         this.health = 100;
@@ -308,17 +336,6 @@ export class Level1 extends Scene {
         this.hurtChirp = this.sound.add("tweet");
 
         this.cursors = this.input.keyboard!.createCursorKeys();
-
-        this.add.text(
-            20,
-            700,
-            "You can't jump to other platforms... unless they're connected! Type 1.next=2 in the box below. Then, try to jump using the arrow keys! Try to make it to Platform 5.",
-            {
-                color: "black",
-                fontSize: "15px",
-                wordWrap: { width: 500 },
-            },
-        );
 
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
@@ -407,6 +424,7 @@ export class Level1 extends Scene {
             if (event.key === "Enter") {
                 const value = enter.value;
                 this.processCommand(value); //HERE
+                enter.value = "";
             }
         });
 
@@ -527,7 +545,7 @@ export class Level1 extends Scene {
         }
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
-            this.player.setVelocityY(-330);
+            this.player.setVelocityY(-230);
         }
 
         //Fall + Respawn
