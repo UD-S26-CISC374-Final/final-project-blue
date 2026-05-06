@@ -1,7 +1,7 @@
 import { EventBus } from "../event-bus";
 import { Scene } from "phaser";
 
-export class Level3 extends Scene {
+export class Level4 extends Scene {
     camera!: Phaser.Cameras.Scene2D.Camera;
     player!: Phaser.Physics.Arcade.Sprite;
     cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -19,11 +19,10 @@ export class Level3 extends Scene {
 
     finishSlab!: Phaser.Physics.Arcade.Image;
 
-    health = 100;
-    maxHealth = 100;
+    lastPlatform: Phaser.Physics.Arcade.Image | null = null;
 
     constructor() {
-        super("Level3");
+        super("Level4");
     }
 
     preload() {
@@ -44,21 +43,22 @@ export class Level3 extends Scene {
         this.add.text(
             20,
             700,
-            "Level 3: Use .next and .prev to navigate. Collect all stars and reach Platform 7!",
+            "Level 4: Build your own paths using .next and .prev. Collect all stars and reach Platform 8!",
             {
                 color: "black",
                 fontSize: "15px",
                 wordWrap: { width: 500 },
-            }
+            },
         );
 
-        this.add.image(0, 0, "s1bg")
+        this.add
+            .image(0, 0, "s1bg")
             .setOrigin(0)
-            .setDisplaySize(2000, 800)
+            .setDisplaySize(2400, 900)
             .setDepth(-10);
 
-        this.spawnx = 100;
-        this.spawny = 150;
+        this.spawnx = 120;
+        this.spawny = 200;
 
         this.player = this.physics.add.sprite(this.spawnx, this.spawny, "dude");
         this.player.setCollideWorldBounds(true);
@@ -67,98 +67,189 @@ export class Level3 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         this.platformList = new Map();
-
         this.items = this.physics.add.staticGroup();
 
-        // 
-        this.createPlatform(100, 300, 1);
-        this.createPlatform(350, 500, 2);
-        this.createPlatform(600, 200, 3);
-        this.createPlatform(900, 400, 4);
-        this.createPlatform(1200, 250, 5);
-        this.createPlatform(1500, 500, 6);
-        this.createPlatform(1800, 300, 7); // GOAL
+        // Different environment layout
+        this.createPlatform(120, 400, 1);
+        this.createPlatform(300, 650, 2);
+        this.createPlatform(550, 250, 3);
+        this.createPlatform(800, 600, 4);
+        this.createPlatform(1100, 300, 5);
+        this.createPlatform(1400, 700, 6);
+        this.createPlatform(1700, 350, 7);
+        this.createPlatform(2100, 500, 8);
 
-        // 
+        // Items
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
         this.createItemOnPlatform(4, "key");
         this.createItemOnPlatform(5, "key");
+        this.createItemOnPlatform(6, "key");
 
-        this.createFinishSlab(7);
+        this.createFinishSlab(8);
 
-        // collision
-        this.physics.add.collider(this.player, this.platforms);
-
-        this.physics.add.overlap(
+        this.physics.add.collider(
             this.player,
-            this.items,
-            (_player, item) => {
-                const i = item as Phaser.Physics.Arcade.Image;
-                if (i.getData("collected")) return;
+            this.platforms,
+            (player, platform) => {
+                const p = platform as Phaser.Physics.Arcade.Image;
 
-                i.setData("collected", true);
-                i.disableBody(true, true);
-                this.collectedCount++;
+                if (this.lastPlatform === p) return;
+                this.lastPlatform = p;
 
-                if (this.collectedCount === this.totalItems) {
-                    this.unlockFinishSlab();
-                }
-            }
+                this.landOnPlatform(player, platform);
+            },
+            undefined,
+            this,
         );
 
-        // enable start platform
+        this.physics.add.overlap(this.player, this.items, (_player, item) => {
+            const i = item as Phaser.Physics.Arcade.Image;
+
+            if (i.getData("collected")) return;
+
+            i.setData("collected", true);
+            i.disableBody(true, true);
+            this.collectedCount++;
+
+            if (this.collectedCount === this.totalItems) {
+                this.unlockFinishSlab();
+            }
+        });
+
+        this.platformList.forEach((platform) => {
+            if (platform.body) {
+                platform.body.enable = false;
+            }
+        });
+
         const start = this.platformList.get(1);
         if (start?.body) {
             start.body.enable = true;
             this.currentPlatform = start;
         }
 
+        this.updatePlatformStates();
+
         this.camera = this.cameras.main;
+        this.camera.setBounds(0, 0, 2400, 900);
+        this.physics.world.setBounds(0, 0, 2400, 900);
         this.camera.startFollow(this.player);
+
+        const commandBox = this.add.dom(width / 2, height - 50).createFromHTML(`
+            <input
+                type="text"
+                id="commandBox"
+                placeholder="Enter command..."
+                style="font-size:20px; padding:5px; width:420px;"
+            />
+        `);
+
+        commandBox.setScrollFactor(0);
+
+        const input = document.getElementById("commandBox") as HTMLInputElement;
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                this.processCommand(input.value);
+            }
+        });
 
         EventBus.emit("current-scene-ready", this);
     }
 
     createPlatform(x: number, y: number, num: number) {
-        const p = this.platforms.create(x, y, "hay") as Phaser.Physics.Arcade.Image;
+        const p = this.platforms.create(
+            x,
+            y,
+            "hay",
+        ) as Phaser.Physics.Arcade.Image;
         p.setDisplaySize(150, 32).refreshBody();
 
         p.setData("number", num);
         p.setData("next", null);
         p.setData("prev", null);
 
-        this.add.text(x, y - 40, num.toString(), {
-            fontSize: "20px",
-            color: "#000",
-        }).setOrigin(0.5);
+        this.add
+            .text(x, y - 40, num.toString(), {
+                fontSize: "20px",
+                color: "#000",
+            })
+            .setOrigin(0.5);
 
         this.platformList.set(num, p);
     }
 
-    createItemOnPlatform(platformNumber: number, key: string) {
-        const p = this.platformList.get(platformNumber);
+    updatePlatformStates() {
+        this.platformList.forEach((platform) => {
+            if (platform.body) {
+                platform.body.enable = false;
+                platform.clearTint();
+            }
+        });
+
+        if (!this.currentPlatform) return;
+
+        this.currentPlatform.body!.enable = true;
+
+        const next = this.currentPlatform.getData("next");
+        const prev = this.currentPlatform.getData("prev");
+
+        if (next?.body) next.body.enable = true;
+
+        if (prev?.body) {
+            prev.body.enable = true;
+            prev.setTint(0xffaa00);
+        }
+    }
+
+    processCommand(command: string) {
+        const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
+        if (!match) return;
+
+        const from = parseInt(match[1]);
+        const direction = match[2];
+        const to = parseInt(match[3]);
+
+        const fromPlatform = this.platformList.get(from);
+        const toPlatform = this.platformList.get(to);
+
+        if (!fromPlatform || !toPlatform) return;
+
+        fromPlatform.setData(direction, toPlatform);
+
+        this.updatePlatformStates();
+    }
+
+    landOnPlatform(player: any, platform: any) {
+        const p = platform as Phaser.Physics.Arcade.Image;
+
+        if (!player.body.blocked.down) return;
+
+        this.currentPlatform = p;
+
+        if (this.currentPlatform === this.platformList.get(8)) {
+            console.log("Level Complete!");
+        }
+
+        this.updatePlatformStates();
+    }
+
+    createItemOnPlatform(num: number, key: string) {
+        const p = this.platformList.get(num);
         if (!p) return;
 
-        const item = this.items.create(
-            p.x,
-            p.y - 50,
-            key
-        ) as Phaser.Physics.Arcade.Image;
-
+        const item = this.items.create(p.x, p.y - 50, key);
         item.setData("collected", false);
+
         this.totalItems++;
     }
 
-    createFinishSlab(platformNumber: number) {
-        const p = this.platformList.get(platformNumber);
+    createFinishSlab(num: number) {
+        const p = this.platformList.get(num);
         if (!p) return;
 
-        this.finishSlab = this.physics.add.staticImage(
-            p.x,
-            p.y - 50,
-            "slab"
-        );
+        this.finishSlab = this.physics.add.staticImage(p.x, p.y - 50, "slab");
     }
 
     unlockFinishSlab() {
@@ -176,11 +267,6 @@ export class Level3 extends Scene {
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
             this.player.setVelocityY(-330);
-        }
-
-        // win condition (UPDATED)
-        if (this.currentPlatform === this.platformList.get(7)) {
-            console.log("Level Complete!");
         }
     }
 }
