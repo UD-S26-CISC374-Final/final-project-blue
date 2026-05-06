@@ -207,6 +207,50 @@ export class Level3 extends Scene {
         }
     }
 
+    drawConnection(
+        graphics: Phaser.GameObjects.Graphics,
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number,
+        width: number,
+        height: number,
+        fill = true,
+    ) {
+        graphics.lineBetween(x1, y1, x2, y2);
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+        // Line unit vector
+        const udx = dx / lineLength;
+        const udy = dy / lineLength;
+
+        // Perpendicular unit vector
+        const pdx = -udy;
+        const pdy = udx;
+
+        // Arrowhead base vertices
+        const x3 = x2 - height * udx + width * pdx;
+        const y3 = y2 - height * udy + width * pdy;
+        const x4 = x2 - height * udx - width * pdx;
+        const y4 = y2 - height * udy - width * pdy;
+
+        if (fill) {
+            graphics.fillTriangle(x2, y2, x3, y3, x4, y4);
+        } else {
+            graphics
+                .beginPath()
+                .moveTo(x3, y3)
+                .lineTo(x2, y2)
+                .lineTo(x4, y4)
+                .strokePath();
+        }
+        graphics.alpha = 0.4;
+    }
+
     processCommand(command: string) {
         const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
         if (!match) return;
