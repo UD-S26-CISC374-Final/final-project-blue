@@ -74,6 +74,16 @@ export class StoryboardStart extends Scene implements ChangeableScene {
     }
 
     create() {
+        this.cameras.main.fadeIn(200);
+
+        const instruct = this.add.text(760, 700, "Press Space to Continue", {
+            color: "floralwhite",
+            fontSize: "20px",
+            wordWrap: { width: 500 },
+            fontFamily: "ChickinFont",
+        });
+        instruct.setDepth(10);
+
         this.storySteps = [
             {
                 image: "scene1",

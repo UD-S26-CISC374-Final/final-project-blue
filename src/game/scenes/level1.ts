@@ -249,6 +249,8 @@ export class Level1 extends Scene {
         ) as Phaser.Physics.Arcade.Image;
         hayPlatform.setDisplaySize(150, 32).refreshBody();
 
+        //Background -
+
         //Monitor movement of Blue onto the platform - test which platform he's on
         this.physics.add.collider(
             this.player,
@@ -318,9 +320,8 @@ export class Level1 extends Scene {
             },
         );
 
-        this.player.setBounce(0.35);
+        this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
-
         this.lines = this.add.graphics();
 
         // animations
