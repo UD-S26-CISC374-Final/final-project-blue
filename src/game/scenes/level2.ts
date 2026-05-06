@@ -575,7 +575,7 @@ export class Level2 extends Scene {
         nextLevelButton.on("pointerdown", () => {
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.scene.start("Level2");
+                this.scene.start("Level3");
             });
         });
         const retryLevelButton = this.add
