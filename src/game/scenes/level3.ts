@@ -4,7 +4,7 @@ import { Scene } from "phaser";
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
 
-export class Level2 extends Scene {
+export class Level3 extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     phaserLogo: PhaserLogo;
@@ -35,7 +35,7 @@ export class Level2 extends Scene {
     uiIcons: Phaser.GameObjects.Image[] = [];
 
     constructor() {
-        super("Level2");
+        super("Level3");
     }
 
     showLevelComplete() {
@@ -240,8 +240,8 @@ export class Level2 extends Scene {
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
         this.currentPlatform = currPlatform;
 
-        //CHANGE4NEWLEVEL
-        if (this.currentPlatform === this.platformList.get(6)) {
+        // Final platform should be 7 for this level
+        if (this.currentPlatform === this.platformList.get(8)) {
             this.showLevelComplete();
         }
 
@@ -428,18 +428,21 @@ export class Level2 extends Scene {
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
        	this.createPlatform(this.spawnx + 50, this.spawny + 200, 1);
-        this.createPlatform(this.spawnx + 300, this.spawny + 600, 2);
-        this.createPlatform(this.spawnx + 650, this.spawny + 150, 3);
-        this.createPlatform(this.spawnx + 1000, this.spawny + 550, 4);
-        this.createPlatform(this.spawnx + 850, this.spawny + 250, 5);
+        this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
+        this.createPlatform(this.spawnx + 650, this.spawny + 300, 3);
+        this.createPlatform(this.spawnx + 850, this.spawny + 400, 4);
+        this.createPlatform(this.spawnx + 850, this.spawny + 150, 5);
         this.createPlatform(this.spawnx + 1300, this.spawny + 350, 6);
-        this.createPlatform(this.spawnx + 1650, this.spawny + 150, 7);
+        this.createPlatform(this.spawnx + 1600, this.spawny + 400, 7);
+        this.createPlatform(this.spawnx + 1600, this.spawny + 200, 8);
 
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
         this.createItemOnPlatform(4, "key");
         this.createItemOnPlatform(5, "key");
-        this.createFinishSlab(6);
+        this.createItemOnPlatform(6, "key");
+        this.createItemOnPlatform(7, "key");
+        this.createFinishSlab(8);
 
         //to collect time
         this.physics.add.overlap(
