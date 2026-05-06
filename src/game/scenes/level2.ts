@@ -427,12 +427,13 @@ export class Level2 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
-        this.createPlatform(this.spawnx, this.spawny + 150, 1);
-        this.createPlatform(this.spawnx + 400, this.spawny + 300, 2);
-        this.createPlatform(this.spawnx + 350, this.spawny + 50, 3);
-        this.createPlatform(this.spawnx + 740, this.spawny + 100, 4);
-        this.createPlatform(this.spawnx + 750, this.spawny + 250, 5);
-        this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
+       this.createPlatform(this.spawnx, this.spawny + 100, 1);
+        this.createPlatform(this.spawnx + 250, this.spawny + 450, 2);
+        this.createPlatform(this.spawnx + 500, this.spawny + 150, 3);
+        this.createPlatform(this.spawnx + 850, this.spawny + 500, 4);
+        this.createPlatform(this.spawnx + 1150, this.spawny + 200, 5);
+        this.createPlatform(this.spawnx + 900, this.spawny + 50, 6);
+        this.createPlatform(this.spawnx + 1400, this.spawny + 350, 7);
 
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
