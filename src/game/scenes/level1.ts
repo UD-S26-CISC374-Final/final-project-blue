@@ -5,6 +5,7 @@ import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
 
 export class Level1 extends Scene {
+    didShowConnectionTutorial = false;
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     phaserLogo: PhaserLogo;
@@ -31,6 +32,7 @@ export class Level1 extends Scene {
     tutorialActive = true;
     tutorialTexts: string[] = [];
     tutorialIndex = 0;
+    commandInput!: HTMLInputElement;
 
     constructor() {
         super("Level1");
@@ -44,15 +46,17 @@ export class Level1 extends Scene {
         if (this.tutorialIndex >= this.tutorialTexts.length) {
             this.tutorialBox.destroy();
             this.tutorialActive = false;
+            this.commandInput.disabled = false;
+            this.commandInput.focus();
+
             return;
         }
-
         dialogue.setText(this.tutorialTexts[this.tutorialIndex]);
     }
 
     startTutorial() {
         this.tutorialActive = true;
-
+        this.commandInput.disabled = true;
         const cam = this.cameras.main;
 
         // dark overlay
@@ -81,6 +85,49 @@ export class Level1 extends Scene {
             'Like a chicken has feathers, nodes have a feature called "next".',
             "If you want to jump from one platform to another, make sure the current node's NEXT points to the right node.",
             "Why not try node1->next=node2 and see what happens?",
+        ];
+
+        dialogue.setText(this.tutorialTexts[0]);
+        this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
+        this.input.keyboard!.on("keydown-SPACE", () => {
+            this.advanceTutorial(dialogue);
+        });
+        this.input.on("pointerdown", () => {
+            this.advanceTutorial(dialogue);
+        });
+    }
+
+    compTutorial() {
+        this.input.removeAllListeners("pointerdown");
+        this.input.keyboard!.removeAllListeners("keydown-SPACE");
+        this.tutorialActive = true;
+        this.commandInput.disabled = true;
+        const cam = this.cameras.main;
+
+        // dark overlay
+        const bg = this.add
+            .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
+            .setOrigin(0.5, 1)
+            .setScrollFactor(0);
+
+        // character portrait placeholder
+        const portrait = this.add.image(500, 400, "trina");
+
+        // dialogue text
+        const dialogue = this.add
+            .text(520, cam.height - 150, "", {
+                fontSize: "24px",
+                color: "#ffffff",
+                wordWrap: { width: 400 },
+                fontFamily: "ChickinFont",
+            })
+            .setScrollFactor(0);
+
+        this.tutorialIndex = 0;
+        this.tutorialTexts = [
+            "Look at that! Now you can jump to the next platform safely.",
+            "You can move around using the ARROW KEYS.",
+            "Keep making it to the last visible platform, and you'll be outta this rinky-dink barn in no time.",
         ];
 
         dialogue.setText(this.tutorialTexts[0]);
@@ -300,6 +347,11 @@ export class Level1 extends Scene {
         fromPlatform.setData(direction, toPlatform);
         fromPlatform.setData(direction, toPlatform);
 
+        if (from === 1 && direction === "next" && to === 2) {
+            this.didShowConnectionTutorial = true;
+            this.compTutorial();
+        }
+
         this.drawAll();
         this.updatePlatformStates();
     }
@@ -446,6 +498,18 @@ export class Level1 extends Scene {
             }
         });
 
+        //texts
+        this.add.text(400, 230, "node1->next=node2", {
+            fontSize: "25px",
+            color: "#5a3604",
+            fontFamily: "ChickinFont",
+        });
+        this.add.text(530, 320, "Use arrow keys to move", {
+            fontSize: "25px",
+            color: "#5a3604",
+            fontFamily: "ChickinFont",
+        });
+
         // Enable starting platform
         const startPlatform = this.platformList.get(1);
 
@@ -484,6 +548,7 @@ export class Level1 extends Scene {
         ) as HTMLInputElement | null;
         if (!enter) return;
         enter.focus();
+        this.commandInput = enter;
         enter.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 const value = enter.value;
