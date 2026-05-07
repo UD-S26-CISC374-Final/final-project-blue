@@ -374,7 +374,6 @@ export class Level2 extends Scene {
                 fontFamily: "ChickinFont",
             })
             .setOrigin(0.5);
-        nextConnect.setScrollFactor(0);
 
         this.tweens.add({
             targets: nextConnect,
@@ -387,7 +386,6 @@ export class Level2 extends Scene {
         });
 
         if (!fromPlatform || !toPlatform) return;
-        fromPlatform.setData(direction, toPlatform);
         fromPlatform.setData(direction, toPlatform);
 
         //BETA CHANGE

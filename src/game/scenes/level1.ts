@@ -390,7 +390,6 @@ export class Level1 extends Scene {
 
         if (!fromPlatform || !toPlatform) return;
         fromPlatform.setData(direction, toPlatform);
-        fromPlatform.setData(direction, toPlatform);
 
         //BETA CHANGE
         if (from === 1 && direction === "next" && to === 2) {

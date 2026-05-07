@@ -4,8 +4,8 @@ import { Scene } from "phaser";
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
 
-export class Level3 extends Scene {
-    lockedConnections!: Set<string>;
+export class Level5 extends Scene {
+    didShowConnectionTutorial = false;
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     phaserLogo: PhaserLogo;
@@ -29,23 +29,16 @@ export class Level3 extends Scene {
         | Phaser.Sound.HTML5AudioSound
         | Phaser.Sound.WebAudioSound;
 
-    items!: Phaser.Physics.Arcade.StaticGroup;
-    collectedCount = 0;
-    totalItems = 0;
-    finishSlab!: Phaser.Physics.Arcade.Image;
-    uiIcons: Phaser.GameObjects.Image[] = [];
-
+    //BETA CHANGE
     tutorialBox!: Phaser.GameObjects.Container;
     tutorialActive = true;
     tutorialTexts: string[] = [];
     tutorialIndex = 0;
     commandInput!: HTMLInputElement;
-    didShowConnectionTutorial: boolean;
-    forbiddenConnections!: Set<string>;
-    aliasMap: Map<number, number> = new Map();
+    historyBox!: Phaser.GameObjects.DOMElement;
 
     constructor() {
-        super("Level3");
+        super("Level5");
     }
 
     //BETA CHANGE
@@ -59,7 +52,7 @@ export class Level3 extends Scene {
             this.tutorialActive = false;
             this.commandInput.disabled = false;
             this.commandInput.focus();
-
+            this.historyBox.setVisible(true);
             return;
         }
         dialogue.setText(this.tutorialTexts[this.tutorialIndex]);
@@ -69,6 +62,7 @@ export class Level3 extends Scene {
     startTutorial() {
         this.tutorialActive = true;
         this.commandInput.disabled = true;
+        this.historyBox.setVisible(false);
         const cam = this.cameras.main;
 
         // dark overlay
@@ -80,7 +74,7 @@ export class Level3 extends Scene {
         // character portrait placeholder
         const portrait = this.add.image(500, 400, "trina");
 
-        // dialogue text BETA ADD
+        // dialogue text
         const dialogue = this.add
             .text(520, cam.height - 150, "", {
                 fontSize: "24px",
@@ -103,9 +97,12 @@ export class Level3 extends Scene {
         clickSpace.alpha = 0.5;
 
         this.tutorialTexts = [
-            "Sometimes, you won't know what one of the values are, but you want to get it right anyway.",
-            "From what you know about using NEXT and PREV... can you equate Node1 to the white node... indirectly?",
-            "Give it a go!",
+            "Welcome to the great outdoors, kid!",
+            "You're gonna learn a little bit about inserting nodes, or platforms, as you call it.",
+            "The node you want to insert is always predefined, kinda like node2 over here.",
+            "However, it's not connected very well. Use your new knowledge to fix it and you've basically inserted a new node!",
+            "Also, now that you're further from home, your links will feel blurrier. You'll see what I mean.",
+            "But I know YOU know what to do!",
         ];
 
         dialogue.setText(this.tutorialTexts[0]);
@@ -124,48 +121,50 @@ export class Level3 extends Scene {
     }
 
     //BETA CHANGE
-    // compTutorial() {
-    //     this.input.removeAllListeners("pointerdown");
-    //     this.input.keyboard!.removeAllListeners("keydown-SPACE");
-    //     this.tutorialActive = true;
-    //     this.commandInput.disabled = true;
-    //     const cam = this.cameras.main;
+    compTutorial() {
+        this.input.removeAllListeners("pointerdown");
+        this.input.keyboard!.removeAllListeners("keydown-SPACE");
+        this.tutorialActive = true;
+        this.commandInput.disabled = true;
+        this.historyBox.setVisible(false);
+        const cam = this.cameras.main;
 
-    //     // dark overlay
-    //     const bg = this.add
-    //         .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
-    //         .setOrigin(0.5, 1)
-    //         .setScrollFactor(0);
+        // dark overlay
+        const bg = this.add
+            .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
+            .setOrigin(0.5, 1)
+            .setScrollFactor(0);
 
-    //     // character portrait placeholder
-    //     const portrait = this.add.image(500, 400, "trina");
+        // character portrait placeholder
+        const portrait = this.add.image(500, 400, "trina");
 
-    //     // dialogue text
-    //     const dialogue = this.add
-    //         .text(520, cam.height - 150, "", {
-    //             fontSize: "24px",
-    //             color: "#ffffff",
-    //             wordWrap: { width: 400 },
-    //             fontFamily: "ChickinFont",
-    //         })
-    //         .setScrollFactor(0);
+        // dialogue text
+        const dialogue = this.add
+            .text(520, cam.height - 150, "", {
+                fontSize: "24px",
+                color: "#ffffff",
+                wordWrap: { width: 400 },
+                fontFamily: "ChickinFont",
+            })
+            .setScrollFactor(0);
 
-    //     this.tutorialIndex = 0;
-    //     this.tutorialTexts = [
-    //         "Nice Work!",
-    //         "This is how you traverse. I'll show up a little less now that you've got this down.",
-    //         "Keep it up!",
-    //     ];
+        this.tutorialIndex = 0;
+        this.tutorialTexts = [
+            "It's as easy as that! You're inserting a new platform into your route.",
+            "Things will get more complicated, but you're essentially doing the same thing always.",
+            "Keep going!",
+        ];
 
-    //     dialogue.setText(this.tutorialTexts[0]);
-    //     this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
-    //     this.input.keyboard!.on("keydown-SPACE", () => {
-    //         this.advanceTutorial(dialogue);
-    //     });
-    //     this.input.on("pointerdown", () => {
-    //         this.advanceTutorial(dialogue);
-    //     });
-    // }
+        dialogue.setText(this.tutorialTexts[0]);
+        this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
+        this.input.keyboard!.on("keydown-SPACE", () => {
+            this.advanceTutorial(dialogue);
+        });
+        this.input.on("pointerdown", () => {
+            this.advanceTutorial(dialogue);
+        });
+    }
+
     showLevelComplete() {
         this.overlay.setVisible(true);
         this.overlay.setAlpha(0);
@@ -194,12 +193,13 @@ export class Level3 extends Scene {
         const width = 200;
         const height = 20;
 
+        const percent = this.health / this.maxHealth;
+
+        //black border BETA CHANGE
         const healthRect = this.add
             .rectangle(x + 100, y + 10, 200, 20)
             .setStrokeStyle(2, 0x000000);
         healthRect.setScrollFactor(0);
-
-        const percent = this.health / this.maxHealth;
 
         // background (red/empty)
         this.healthBarBg.clear();
@@ -211,30 +211,42 @@ export class Level3 extends Scene {
         this.healthBarFill.fillStyle(0x82cf93);
         this.healthBarFill.fillRect(x, y, width * percent, height);
 
+        //make sure it scrolls with the screen
         this.healthBarBg.setScrollFactor(0);
         this.healthBarFill.setScrollFactor(0);
     }
 
     updatePlatformStates() {
-        // disable everything first
+        // Turn OFF all platforms first
         this.platformList.forEach((platform) => {
-            if (!platform.body) return;
-            platform.body.enable = false;
+            if (platform.body) {
+                platform.body.enable = false;
+                platform.clearTint();
+            }
         });
 
         if (!this.currentPlatform) return;
 
-        // always enable current
-        this.currentPlatform.body!.enable = true;
+        // Current platform stays solid
+        if (this.currentPlatform.body) {
+            this.currentPlatform.body.enable = true;
+        }
 
-        // ONLY follow NEXT chain
-        const nextId = this.currentPlatform.getData("next") as number | null;
+        // Enable .next
+        const next = this.currentPlatform.getData(
+            "next",
+        ) as Phaser.Physics.Arcade.Image | null;
 
-        if (nextId !== null) {
-            const next = this.platformList.get(nextId);
-            if (next && next.body) {
-                next.body.enable = true;
-            }
+        if (next && next.body) {
+            next.body.enable = true;
+        }
+
+        // Enable .prev
+        const prev = this.currentPlatform.getData(
+            "prev",
+        ) as Phaser.Physics.Arcade.Image | null;
+        if (prev && prev.body) {
+            prev.body.enable = true;
         }
     }
 
@@ -279,37 +291,7 @@ export class Level3 extends Scene {
                 .lineTo(x4, y4)
                 .strokePath();
         }
-        graphics.alpha = 0.4;
-    }
-    resolveEndpoint(
-        nodeNumber: number,
-        direction: "next" | "prev",
-    ): number | null {
-        const current = this.platformList.get(nodeNumber);
-        if (!current) return null;
-
-        let targetId = current.getData(direction) as number | null;
-
-        if (targetId == null) return nodeNumber;
-
-        // ONLY allow chaining for NEXT
-        if (direction === "next") {
-            let safety = 0;
-
-            while (safety < 10) {
-                const nextNode = this.platformList.get(targetId);
-                if (!nextNode) break;
-
-                const chained = nextNode.getData("next") as number | null;
-
-                if (chained == null) break;
-
-                targetId = chained;
-                safety++;
-            }
-        }
-
-        return targetId;
+        graphics.alpha = 0.2;
     }
 
     drawAll() {
@@ -319,11 +301,12 @@ export class Level3 extends Scene {
         this.lines.setDepth(1);
 
         this.platformList.forEach((platform: Phaser.Physics.Arcade.Image) => {
-            const nextId = platform.getData("next") as number | null;
-            const prevId = platform.getData("prev") as number | null;
-
-            const next = nextId ? this.platformList.get(nextId) : null;
-            const prev = prevId ? this.platformList.get(prevId) : null;
+            const next = platform.getData(
+                "next",
+            ) as Phaser.Physics.Arcade.Image | null;
+            const prev = platform.getData(
+                "prev",
+            ) as Phaser.Physics.Arcade.Image | null;
 
             if (next) {
                 this.drawConnection(
@@ -352,93 +335,78 @@ export class Level3 extends Scene {
         });
     }
 
-    showWarn() {
-        const warn = this.add
-            .text(600, 700, "Invalid Input!", {
-                fontSize: "25px",
-                color: "#c72828",
-                fontFamily: "ChickinFont",
-            })
-            .setOrigin(0.5);
-        this.tweens.add({
-            targets: warn,
-            alpha: 0,
-            duration: 3000,
-            ease: "Linear",
-            onComplete: () => warn.destroy(),
-        });
-        return;
-    }
-
-    showSuccess(x: number, y: number) {
-        const warn = this.add
-            .text(x, y - 50, "Connection Made!", {
-                fontSize: "25px",
-                color: "#42c728",
-                fontFamily: "ChickinFont",
-            })
-            .setOrigin(0.5);
-        this.tweens.add({
-            targets: warn,
-            alpha: 0,
-            duration: 3000,
-            ease: "Linear",
-            onComplete: () => warn.destroy(),
-        });
-        return;
-    }
-
     processCommand(command: string) {
-        command = command.replace(/\s+/g, " ").trim();
+        //BETA CHANGE
+        const match = command.match(/node(\d+)->(next|prev)\s*=\s*node(\d+)/);
 
-        const [leftRaw, rightRaw] = command.split("=");
-        if (!leftRaw || !rightRaw) {
-            this.showWarn();
+        if (!match) {
+            //BETA CHANGE
+            const warn = this.add
+                .text(600, 700, "Invalid Input!", {
+                    fontSize: "25px",
+                    color: "#c72828",
+                    fontFamily: "ChickinFont",
+                })
+                .setOrigin(0.5);
+            warn.setScrollFactor(0);
+
+            this.tweens.add({
+                targets: warn,
+                alpha: 0, // Target alpha
+                duration: 3000,
+                ease: "Linear",
+                onComplete: () => {
+                    warn.destroy();
+                },
+            });
             return;
         }
+        //Breaking down the match command into smaller bits - from, direction (next/prev) and to
+        const from = parseInt(match[1]);
+        const direction = match[2];
+        const to = parseInt(match[3]);
 
-        const leftMatch = leftRaw.trim().match(/node(\d+)->(next|prev)/);
-        const rightMatch = rightRaw.trim().match(/node(\d+)(?:->(next|prev))?/);
-
-        if (!leftMatch || !rightMatch) {
-            this.showWarn();
-            return;
-        }
-
-        const from = Number(leftMatch[1]);
-        const direction = leftMatch[2] as "next" | "prev";
-
-        const rhsNode = Number(rightMatch[1]);
-        const rhsDirection = rightMatch[2] as "next" | "prev" | undefined;
-
-        let to = rhsNode;
-
-        if (rhsDirection) {
-            const resolved = this.resolveEndpoint(rhsNode, rhsDirection);
-            to = resolved ?? rhsNode;
-        }
-
+        //Map works with keys! So get the from key for the current platform and likewise with to
         const fromPlatform = this.platformList.get(from);
         const toPlatform = this.platformList.get(to);
 
-        if (!fromPlatform || !toPlatform) {
-            this.showWarn();
-            return;
+        //BETA
+        const nextConnect = this.add
+            .text(toPlatform!.x, toPlatform!.y - 50, "Connection Made!", {
+                fontSize: "35px",
+                color: "#ffffff",
+                fontFamily: "ChickinFont",
+            })
+            .setOrigin(0.5);
+
+        this.tweens.add({
+            targets: nextConnect,
+            alpha: 0, // Target alpha
+            duration: 2000,
+            ease: "Linear",
+            onComplete: () => {
+                nextConnect.destroy();
+            },
+        });
+
+        if (!fromPlatform || !toPlatform) return;
+        fromPlatform.setData(direction, toPlatform);
+
+        const history = document.getElementById("historyBox");
+
+        if (history) {
+            history.innerHTML += `<div>> ${command}</div>`;
+            history.scrollTop = history.scrollHeight;
         }
 
-        const lockKey = `${from}:${direction}`;
-
-        if (this.lockedConnections.has(lockKey)) {
-            this.showWarn(); // or a custom message like "Connection is locked!"
-            return;
+        //BETA CHANGE
+        if (from === 1 && direction === "next" && to === 2) {
+            this.didShowConnectionTutorial = true;
+            this.compTutorial();
         }
 
-        fromPlatform.setData(direction, to);
-
-        this.showSuccess(toPlatform.x, toPlatform.y);
         this.drawAll();
         this.updatePlatformStates();
-        console.log("the command is ", JSON.stringify(command));
     }
 
     landOnPlatform(
@@ -458,8 +426,7 @@ export class Level3 extends Scene {
         const currPlatform = platform as Phaser.Physics.Arcade.Image;
         this.currentPlatform = currPlatform;
 
-        //CHANGE4NEWLEVEL
-        if (this.currentPlatform === this.platformList.get(6)) {
+        if (this.currentPlatform === this.platformList.get(5)) {
             this.showLevelComplete();
         }
 
@@ -473,9 +440,27 @@ export class Level3 extends Scene {
             "hay",
         ) as Phaser.Physics.Arcade.Image;
         hayPlatform.setDisplaySize(150, 32).refreshBody();
+
+        //BETA CHANGE
         this.add.rectangle(x, y, 150, 32).setStrokeStyle(2, 0xffffff);
 
+        //Monitor movement of Blue onto the platform - test which platform he's on
+        this.physics.add.collider(
+            this.player,
+            this.platforms,
+            (player, platform) => {
+                const p = platform as Phaser.Physics.Arcade.Image;
+                if (this.lastPlatform === p) return;
+                this.lastPlatform = p;
+
+                this.landOnPlatform(player, platform);
+            },
+            undefined,
+            this,
+        );
+
         //The number above the platforms
+        hayPlatform.setData("number", number);
         this.add
             .text(x, y, "node" + number.toString(), {
                 fontSize: "25px",
@@ -484,96 +469,30 @@ export class Level3 extends Scene {
             })
             .setOrigin(0.5);
 
-        hayPlatform.setData("next", null as number | null);
-        hayPlatform.setData("prev", null as number | null);
+        hayPlatform.setData("next", null);
+        hayPlatform.setData("prev", null);
         this.platformList.set(number, hayPlatform);
-    }
-
-    createItemOnPlatform(platformNumber: number, itemKey: string) {
-        const platform = this.platformList.get(platformNumber);
-
-        if (!platform) return;
-
-        const item = this.items.create(
-            platform.x,
-            platform.y - 50,
-            itemKey,
-        ) as Phaser.Physics.Arcade.Image;
-
-        item.setDisplaySize(30, 30);
-        item.setData("collected", false);
-
-        this.totalItems++;
-    }
-
-    createUIIcons() {
-        const startX = 30;
-        const startY = 30;
-        const spacing = 40;
-
-        for (let i = 0; i < this.totalItems; i++) {
-            const icon = this.add.image(
-                startX + i * spacing,
-                startY,
-                "gem-silhouette",
-            );
-
-            icon.setScrollFactor(0);
-
-            this.uiIcons.push(icon);
-        }
-    }
-    updateUI() {
-        const index = this.collectedCount;
-
-        if (this.uiIcons[index]) {
-            this.uiIcons[index].setTexture("gem");
-        }
-    }
-
-    createFinishSlab(platformNumber: number) {
-        const platform = this.platformList.get(platformNumber);
-
-        if (!platform) return;
-
-        this.finishSlab = this.physics.add.staticImage(
-            platform.x,
-            platform.y - 50,
-            "slab",
-        );
-
-        this.finishSlab.setDisplaySize(150, 32);
-
-        // Start locked
-        this.finishSlab.body!.enable = true;
-    }
-    unlockFinishSlab() {
-        this.finishSlab.disableBody(true, true);
-
-        console.log("Finish unlocked!");
     }
 
     preload() {
         this.load.audio("tweet", "assets/tweet.mp3");
-        this.load.image("hay", "assets/hay.png");
+        this.load.image("hay", "assets/grass.png");
         this.load.spritesheet("dude", "assets/dude.png", {
             frameWidth: 32,
             frameHeight: 42,
         });
-        this.load.image("key", "assets/star.png");
-        this.load.image("slab", "assets/platform.png");
-        this.load.image("s1bg", "assets/stage1bg.png");
 
-        this.load.image("s1bg", "assets/stage1bg.png");
+        //BETA CHANGE
+        this.load.image("s2bg", "assets/stage2bg.png");
         this.load.image("trina", "assets/trina.png");
     }
 
     create() {
         const { width, height } = this.scale;
-        const s1bg = this.add.image(0, 0, "s1bg").setOrigin(0);
-        s1bg.setDepth(-10);
-        s1bg.setDisplaySize(1800, 700);
-        s1bg.setScale(1.1);
+        const s2bg = this.add.image(0, 0, "s2bg").setOrigin(0);
+        s2bg.setDepth(-10);
+        s2bg.setDisplaySize(1800, 700);
+        s2bg.setScale(1.1);
 
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
@@ -581,20 +500,17 @@ export class Level3 extends Scene {
         this.currentPlatform = undefined;
         this.spawnx = 100;
         this.spawny = 150;
-        this.player = this.physics.add.sprite(400, 150, "dude");
+        this.player = this.physics.add.sprite(100, 150, "dude");
         this.player.setFrame(5);
         this.textures.get("dude").setFilter(Phaser.Textures.FilterMode.LINEAR);
         this.player.setDisplaySize(32, 42);
         this.hurtChirp = this.sound.add("tweet");
 
-        this.items = this.physics.add.staticGroup();
         this.cursors = this.input.keyboard!.createCursorKeys();
 
-        this.player.setBounce(0.35);
+        this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
-
         this.lines = this.add.graphics();
-        this.forbiddenConnections = new Set<string>();
 
         // animations
         this.anims.create({
@@ -625,95 +541,25 @@ export class Level3 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
-        this.createPlatform(this.spawnx + 300, this.spawny + 150, 1);
-        this.createPlatform(this.spawnx + 100, this.spawny + 300, 2);
-        this.createPlatform(this.spawnx + 550, this.spawny + 50, 3);
-        this.createPlatform(this.spawnx + 840, this.spawny + 200, 4);
-        this.createPlatform(this.spawnx + 450, this.spawny + 350, 5);
-        this.createPlatform(this.spawnx + 650, this.spawny + 550, 6);
+        this.createPlatform(this.spawnx, this.spawny + 150, 1);
+        this.createPlatform(this.spawnx + 300, this.spawny + 300, 2);
+        this.createPlatform(this.spawnx + 650, this.spawny + 350, 3);
+        this.createPlatform(this.spawnx + 950, this.spawny + 300, 4);
+        this.createPlatform(this.spawnx + 1350, this.spawny + 350, 5);
 
-        this.createItemOnPlatform(2, "key");
-        this.createItemOnPlatform(3, "key");
-        this.createItemOnPlatform(4, "key");
-        this.createItemOnPlatform(5, "key");
-        this.createFinishSlab(6);
-        this.lockedConnections = new Set();
-
-        this.physics.add.collider(
-            this.player,
-            this.platforms,
-            (player, platform) => {
-                const p = platform as Phaser.Physics.Arcade.Image;
-                if (this.lastPlatform === p) return;
-                this.lastPlatform = p;
-                this.landOnPlatform(player, platform);
-            },
-            undefined,
-            this,
-        );
-
-        this.platformList.forEach((platform) => {
-            if (platform.body) {
-                platform.body.enable = false;
-            }
-        });
-
-        //Setting Forbidden Things
-
-        this.forbiddenConnections.add("1:next:2");
-        this.forbiddenConnections.add("1:prev:2");
-        this.forbiddenConnections.add("1:next:2");
-
+        const node1 = this.platformList.get(1);
+        const node3 = this.platformList.get(3);
         const node5 = this.platformList.get(5);
-        const node2 = this.platformList.get(2);
-        if (node2) {
-            this.add.rectangle(
-                node2.x,
-                node2.y,
-                150,
-                32,
-                0xffffff, // fill color
-                1, // alpha (transparency)
-            );
+
+        if (node1 && node3 && node5) {
+            node1.setData("next", node3);
+            node3.setData("prev", node1);
+            node3.setData("next", node5);
+            node5.setData("prev", node3);
         }
 
-        if (node5) {
-            node5.setData("prev", 2);
-            this.aliasMap.set(5, 2);
-            this.lockedConnections.add("5:prev");
-        }
         this.drawAll();
         this.updatePlatformStates();
-
-        //to collect time, BETA CHANGE
-        this.physics.add.overlap(
-            this.player,
-            this.items,
-            (_player, item) => {
-                const currItem = item as Phaser.Physics.Arcade.Image;
-
-                if (currItem.getData("collected")) return;
-
-                if (!this.currentPlatform) return;
-
-                const platform = this.currentPlatform;
-
-                // ONLY require that player is standing on platform
-                if (!platform.body) return;
-
-                currItem.setData("collected", true);
-                currItem.disableBody(true, true);
-
-                this.collectedCount++;
-                this.updateUI();
-
-                if (this.collectedCount === this.totalItems) {
-                    this.unlockFinishSlab();
-                }
-            },
-            undefined,
-            this,
-        );
 
         // Disable ALL first
         this.platformList.forEach((platform) => {
@@ -736,7 +582,25 @@ export class Level3 extends Scene {
         this.cameras.main.startFollow(this.player);
         this.camera.setBackgroundColor(0xffffff);
 
-        //Text Box
+        this.historyBox = this.add.dom(width / 2 + 244, height - 140)
+            .createFromHTML(`
+            <div
+                id="historyBox"
+                style="
+                    width: 470px;
+                    height: 120px;
+                    overflow-y: auto;
+                    background: rgba(0,0,0,0.7);
+                    border: 1px solid white;
+                    color: white;
+                    font-size: 20px;
+                    padding: 8px;
+                    font-family: ChickinFont;
+                "
+            ></div>
+        `);
+        this.historyBox.setScrollFactor(0);
+
         const commandBox = this.add.dom(width / 2, height - 50).createFromHTML(`
             <input
                 type="text"
@@ -755,6 +619,7 @@ export class Level3 extends Scene {
         `);
         commandBox.setScrollFactor(0);
 
+        //BETA CHANGE
         const enter = document.getElementById(
             "commandBox",
         ) as HTMLInputElement | null;
@@ -831,7 +696,7 @@ export class Level3 extends Scene {
         nextLevelButton.on("pointerdown", () => {
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.scene.start("Level5");
+                this.scene.start("Level6");
             });
         });
         const retryLevelButton = this.add
@@ -864,11 +729,11 @@ export class Level3 extends Scene {
         const speed = 2; // Adjust speed as needed
         const edgeMargin = 50; // Pixels from edge to trigger scroll
 
+        //BETA CHANGE
         if (this.tutorialActive) {
             this.player.setVelocity(0);
             return;
         }
-
         // Right Edge
 
         if (pointer.x > this.scale.width - edgeMargin) {
@@ -893,7 +758,7 @@ export class Level3 extends Scene {
         }
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
-            this.player.setVelocityY(-330);
+            this.player.setVelocityY(-230);
         }
 
         //Fall + Respawn
@@ -922,7 +787,7 @@ export class Level3 extends Scene {
             this.currentPlatform = undefined;
             this.player.setPosition(this.spawnx, this.spawny);
             this.scene.restart();
-            this.scene.start("GameOver", { returnTo: "Level3" });
+            this.scene.start("GameOver", { returnTo: "Level5" });
             this.physics.resume();
         }
     }
