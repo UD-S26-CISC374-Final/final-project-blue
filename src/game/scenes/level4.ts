@@ -34,9 +34,18 @@ export class Level4 extends Scene {
     finishSlab!: Phaser.Physics.Arcade.Image;
     uiIcons: Phaser.GameObjects.Image[] = [];
 
+    tutorialBox!: Phaser.GameObjects.Container;
+    tutorialActive = true;
+    tutorialTexts: string[] = [];
+    tutorialIndex = 0;
+    commandInput!: HTMLInputElement;
+    didShowConnectionTutorial: boolean;
+
     constructor() {
         super("Level4");
     }
+
+    //BETA CHANGE
 
     showLevelComplete() {
         this.overlay.setVisible(true);
@@ -66,6 +75,11 @@ export class Level4 extends Scene {
         const width = 200;
         const height = 20;
 
+        const healthRect = this.add
+            .rectangle(x + 100, y + 10, 200, 20)
+            .setStrokeStyle(2, 0x000000);
+        healthRect.setScrollFactor(0);
+
         const percent = this.health / this.maxHealth;
 
         // background (red/empty)
@@ -85,13 +99,14 @@ export class Level4 extends Scene {
     updatePlatformStates() {
         // Turn OFF all platforms first
         this.platformList.forEach((platform) => {
-            if (platform.body) {
-                platform.body.enable = false;
-                platform.clearTint();
-            }
-        });
+            if (!platform.body) return;
 
+            platform.body.enable = false;
+        });
         if (!this.currentPlatform) return;
+
+        // always keep current platform stable first
+        this.currentPlatform.body!.enable = true;
 
         // Current platform stays solid
         if (this.currentPlatform.body) {
@@ -113,7 +128,6 @@ export class Level4 extends Scene {
         ) as Phaser.Physics.Arcade.Image | null;
         if (prev && prev.body) {
             prev.body.enable = true;
-            prev.setTint(0xffaa00);
         }
     }
 
@@ -203,9 +217,30 @@ export class Level4 extends Scene {
     }
 
     processCommand(command: string) {
-        const match = command.match(/(\d+)\.(next|prev)\s*=\s*(\d+)/);
+        const match = command.match(/node(\d+)->(next|prev)\s*=\s*node(\d+)/);
 
-        if (!match) return;
+        if (!match) {
+            //BETA CHANGE
+            const warn = this.add
+                .text(600, 700, "Invalid Input!", {
+                    fontSize: "25px",
+                    color: "#c72828",
+                    fontFamily: "ChickinFont",
+                })
+                .setOrigin(0.5);
+            warn.setScrollFactor(0);
+
+            this.tweens.add({
+                targets: warn,
+                alpha: 0, // Target alpha
+                duration: 3000,
+                ease: "Linear",
+                onComplete: () => {
+                    warn.destroy();
+                },
+            });
+            return;
+        }
         //Breaking down the match command into smaller bits - from, direction (next/prev) and to
         const from = parseInt(match[1]);
         const direction = match[2];
@@ -215,9 +250,34 @@ export class Level4 extends Scene {
         const fromPlatform = this.platformList.get(from);
         const toPlatform = this.platformList.get(to);
 
+        const nextConnect = this.add
+            .text(toPlatform!.x, toPlatform!.y - 50, "Connection Made!", {
+                fontSize: "35px",
+                color: "#097000",
+                fontFamily: "ChickinFont",
+            })
+            .setOrigin(0.5);
+        nextConnect.setScrollFactor(0);
+
+        this.tweens.add({
+            targets: nextConnect,
+            alpha: 0, // Target alpha
+            duration: 2000,
+            ease: "Linear",
+            onComplete: () => {
+                nextConnect.destroy();
+            },
+        });
+
         if (!fromPlatform || !toPlatform) return;
         fromPlatform.setData(direction, toPlatform);
         fromPlatform.setData(direction, toPlatform);
+
+        //BETA CHANGE
+        if (from === 2 && direction === "prev" && to === 1) {
+            this.didShowConnectionTutorial = true;
+            this.compTutorial();
+        }
 
         this.drawAll();
         this.updatePlatformStates();
@@ -241,7 +301,7 @@ export class Level4 extends Scene {
         this.currentPlatform = currPlatform;
 
         //CHANGE4NEWLEVEL
-        if (this.currentPlatform === this.platformList.get(8)) {
+        if (this.currentPlatform === this.platformList.get(6)) {
             this.showLevelComplete();
         }
 
@@ -255,6 +315,7 @@ export class Level4 extends Scene {
             "hay",
         ) as Phaser.Physics.Arcade.Image;
         hayPlatform.setDisplaySize(150, 32).refreshBody();
+        this.add.rectangle(x, y, 150, 32).setStrokeStyle(2, 0xffffff);
 
         //Monitor movement of Blue onto the platform - test which platform he's on
         this.physics.add.collider(
@@ -271,9 +332,8 @@ export class Level4 extends Scene {
         );
 
         //The number above the platforms
-        hayPlatform.setData("number", number);
         this.add
-            .text(x, y - 40, number.toString(), {
+            .text(x, y, "node" + number.toString(), {
                 fontSize: "25px",
                 color: "#000000",
                 fontFamily: "ChickinFont",
@@ -359,24 +419,17 @@ export class Level4 extends Scene {
         this.load.image("key", "assets/star.png");
         this.load.image("slab", "assets/platform.png");
         this.load.image("s1bg", "assets/stage1bg.png");
+
+        this.load.image("s1bg", "assets/stage1bg.png");
+        this.load.image("trina", "assets/trina.png");
     }
 
     create() {
         const { width, height } = this.scale;
-        this.add.text(
-            20,
-            700,
-            "Need to travel backwards? Use .prev! Try moving to a platform using .next and move to a previous platform. For example, 5.prev=2. Collect all the stars and land on Platform 6!",
-            {
-                color: "black",
-                fontSize: "15px",
-                wordWrap: { width: 500 },
-            },
-        );
-
         const s1bg = this.add.image(0, 0, "s1bg").setOrigin(0);
         s1bg.setDepth(-10);
         s1bg.setDisplaySize(1800, 700);
+        s1bg.setScale(1.1);
 
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
@@ -427,14 +480,14 @@ export class Level4 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
-       this.createPlatform(this.spawnx, this.spawny + 150, 1); 
-       this.createPlatform(this.spawnx + 400, this.spawny + 300, 2); 
-       this.createPlatform(this.spawnx + 400, this.spawny + 100, 3); 
-       this.createPlatform(this.spawnx + 750, this.spawny + 250, 4); 
-       this.createPlatform(this.spawnx + 740, this.spawny + 100, 5); 
-       this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
-       this.createPlatform(this.spawnx + 1500, this.spawny + 550, 7);
-       this.createPlatform(this.spawnx + 1500, this.spawny + 400, 8);
+	    this.createPlatform(this.spawnx, this.spawny + 150, 1); 
+	    this.createPlatform(this.spawnx + 400, this.spawny + 300, 2); 
+	    this.createPlatform(this.spawnx + 400, this.spawny + 100, 3); 
+	    this.createPlatform(this.spawnx + 750, this.spawny + 250, 4); 
+	    this.createPlatform(this.spawnx + 740, this.spawny + 100, 5); 
+	    this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
+	    this.createPlatform(this.spawnx + 1500, this.spawny + 550, 7);
+	    this.createPlatform(this.spawnx + 1500, this.spawny + 400, 8);
 
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
@@ -442,9 +495,9 @@ export class Level4 extends Scene {
         this.createItemOnPlatform(5, "key");
         this.createItemOnPlatform(6, "key");
         this.createItemOnPlatform(7, "key");
-        this.createFinishSlab(8);
+        this.createFinishSlab(6);
 
-        //to collect time
+        //to collect time, BETA CHANGE
         this.physics.add.overlap(
             this.player,
             this.items,
@@ -453,12 +506,30 @@ export class Level4 extends Scene {
 
                 if (currItem.getData("collected")) return;
 
+                const platform = this.currentPlatform;
+                if (!platform) return;
+
+                // ONLY allow collection if platform connections are valid
+                const next = platform.getData(
+                    "next",
+                ) as Phaser.Physics.Arcade.Image | null;
+                const prev = platform.getData(
+                    "prev",
+                ) as Phaser.Physics.Arcade.Image | null;
+                const isValidConnection =
+                    (next && next.body && next.body.enable) ||
+                    (prev && prev.body && prev.body.enable);
+
+                if (!isValidConnection) {
+                    return;
+                }
+
                 currItem.setData("collected", true);
                 currItem.disableBody(true, true);
+
                 this.collectedCount++;
                 this.updateUI();
 
-                // Unlock finish if done
                 if (this.collectedCount === this.totalItems) {
                     this.unlockFinishSlab();
                 }
@@ -473,6 +544,18 @@ export class Level4 extends Scene {
                 platform.body.enable = false;
             }
         });
+
+        //texts, BETA CHANGE
+        this.add.text(400, 230, "node1->prev=node2", {
+            fontSize: "25px",
+            color: "#5a3604",
+            fontFamily: "ChickinFont",
+        });
+        // this.add.text(530, 320, "Use arrow keys to move", {
+        //     fontSize: "25px",
+        //     color: "#5a3604",
+        //     fontFamily: "ChickinFont",
+        // });
 
         // Enable starting platform
         const startPlatform = this.platformList.get(1);
@@ -511,10 +594,14 @@ export class Level4 extends Scene {
             "commandBox",
         ) as HTMLInputElement | null;
         if (!enter) return;
+        enter.focus();
+        this.commandInput = enter;
         enter.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 const value = enter.value;
                 this.processCommand(value); //HERE
+                //BETA CHANGE
+                enter.value = "";
             }
         });
 
@@ -579,7 +666,7 @@ export class Level4 extends Scene {
         nextLevelButton.on("pointerdown", () => {
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.scene.start("Level3");
+                this.scene.start("Level4");
             });
         });
         const retryLevelButton = this.add
@@ -602,6 +689,7 @@ export class Level4 extends Scene {
         retryLevelButton.on("pointerdown", () => {
             this.scene.restart();
         });
+        this.startTutorial(); //beta change
 
         EventBus.emit("current-scene-ready", this);
     }
@@ -610,6 +698,11 @@ export class Level4 extends Scene {
         const pointer = this.input.activePointer;
         const speed = 2; // Adjust speed as needed
         const edgeMargin = 50; // Pixels from edge to trigger scroll
+
+        if (this.tutorialActive) {
+            this.player.setVelocity(0);
+            return;
+        }
 
         // Right Edge
 
@@ -660,19 +753,11 @@ export class Level4 extends Scene {
 
         if (!this.currentPlatform) return;
 
-        const next = this.currentPlatform.getData(
-            "next",
-        ) as Phaser.Physics.Arcade.Image | null;
-
-        if (next) {
-            next.setTint(0x00ff00);
-        }
-
         if (this.health <= 0) {
             this.currentPlatform = undefined;
             this.player.setPosition(this.spawnx, this.spawny);
             this.scene.restart();
-            this.scene.start("GameOver");
+            this.scene.start("GameOver", { returnTo: "Level4" });
             this.physics.resume();
         }
     }
