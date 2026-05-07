@@ -27,9 +27,70 @@ export class Level1 extends Scene {
         | Phaser.Sound.NoAudioSound
         | Phaser.Sound.HTML5AudioSound
         | Phaser.Sound.WebAudioSound;
+    tutorialBox!: Phaser.GameObjects.Container;
+    tutorialActive = true;
+    tutorialTexts: string[] = [];
+    tutorialIndex = 0;
 
     constructor() {
         super("Level1");
+    }
+
+    advanceTutorial(dialogue: Phaser.GameObjects.Text) {
+        if (!this.tutorialActive) return;
+
+        this.tutorialIndex++;
+
+        if (this.tutorialIndex >= this.tutorialTexts.length) {
+            this.tutorialBox.destroy();
+            this.tutorialActive = false;
+            return;
+        }
+
+        dialogue.setText(this.tutorialTexts[this.tutorialIndex]);
+    }
+
+    startTutorial() {
+        this.tutorialActive = true;
+
+        const cam = this.cameras.main;
+
+        // dark overlay
+        const bg = this.add
+            .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
+            .setOrigin(0.5, 1)
+            .setScrollFactor(0);
+
+        // character portrait placeholder
+        const portrait = this.add.image(500, 400, "trina");
+
+        // dialogue text
+        const dialogue = this.add
+            .text(520, cam.height - 150, "", {
+                fontSize: "24px",
+                color: "#ffffff",
+                wordWrap: { width: 400 },
+                fontFamily: "ChickinFont",
+            })
+            .setScrollFactor(0);
+
+        this.tutorialTexts = [
+            "Hey kid, I'm Trina Rex. What, you've never seen a dinosaur with glasses before?",
+            "If you want to find your mom, you're going to have to learn a thing or two about linked lists.",
+            "See those platforms? They're called NODES. Each of 'em has a name.",
+            'Like a chicken has feathers, nodes have a feature called "next".',
+            "If you want to jump from one platform to another, make sure the current node's NEXT points to the right node.",
+            "Why not try node1->next=node2 and see what happens?",
+        ];
+
+        dialogue.setText(this.tutorialTexts[0]);
+        this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
+        this.input.keyboard!.on("keydown-SPACE", () => {
+            this.advanceTutorial(dialogue);
+        });
+        this.input.on("pointerdown", () => {
+            this.advanceTutorial(dialogue);
+        });
     }
 
     showLevelComplete() {
@@ -63,10 +124,10 @@ export class Level1 extends Scene {
         const percent = this.health / this.maxHealth;
 
         //black border
-        this.add
+        const healthRect = this.add
             .rectangle(x + 100, y + 10, 200, 20)
             .setStrokeStyle(2, 0x000000);
-
+        healthRect.setScrollFactor(0);
         // background (red/empty)
         this.healthBarBg.clear();
         this.healthBarBg.fillStyle(0xcf8782);
@@ -207,12 +268,13 @@ export class Level1 extends Scene {
 
         if (!match) {
             const warn = this.add
-                .text(600, 750, "Invalid Input!", {
+                .text(600, 700, "Invalid Input!", {
                     fontSize: "25px",
                     color: "#c72828",
                     fontFamily: "ChickinFont",
                 })
                 .setOrigin(0.5);
+            warn.setScrollFactor(0);
 
             this.tweens.add({
                 targets: warn,
@@ -315,6 +377,7 @@ export class Level1 extends Scene {
             frameHeight: 42,
         });
         this.load.image("s1bg", "assets/stage1bg.png");
+        this.load.image("trina", "assets/trina.png");
     }
 
     create() {
@@ -420,6 +483,7 @@ export class Level1 extends Scene {
             "commandBox",
         ) as HTMLInputElement | null;
         if (!enter) return;
+        enter.focus();
         enter.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 const value = enter.value;
@@ -512,6 +576,7 @@ export class Level1 extends Scene {
         retryLevelButton.on("pointerdown", () => {
             this.scene.restart();
         });
+        this.startTutorial();
 
         EventBus.emit("current-scene-ready", this);
     }
@@ -521,6 +586,10 @@ export class Level1 extends Scene {
         const speed = 2; // Adjust speed as needed
         const edgeMargin = 50; // Pixels from edge to trigger scroll
 
+        if (this.tutorialActive) {
+            this.player.setVelocity(0);
+            return;
+        }
         // Right Edge
 
         if (pointer.x > this.scale.width - edgeMargin) {

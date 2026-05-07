@@ -67,20 +67,21 @@ export class StoryboardStart extends Scene implements ChangeableScene {
         this.load.image("scene1", "assets/lcmainmenu.png");
         this.load.image("scene2", "assets/scene2.png");
         this.load.image("scene3", "assets/scene3.png");
-        this.load.image("scene4", "assets/scene2.png");
-        this.load.image("scene5", "assets/scene3.png");
-        this.load.image("scene6", "assets/scene2.png");
-        this.load.image("scene7", "assets/scene3.png");
+        this.load.image("scene4", "assets/scene4.png");
+        this.load.image("scene5", "assets/scene5.png");
+        this.load.image("scene6", "assets/scene6.png");
+        this.load.image("scene7", "assets/scene7.png");
+        this.load.image("scene8", "assets/scene8.png");
     }
 
     create() {
         this.cameras.main.fadeIn(200);
 
-        const instruct = this.add.text(760, 700, "Press Space to Continue", {
+        const instruct = this.add.text(760, 700, "(Press Space to Continue)", {
             color: "floralwhite",
-            fontSize: "20px",
+            fontSize: "25px",
             wordWrap: { width: 500 },
-            fontFamily: "ChickinFont",
+            fontFamily: "Arial",
         });
         instruct.setDepth(10);
 
@@ -142,7 +143,7 @@ export class StoryboardStart extends Scene implements ChangeableScene {
                 text: "With his newfound ancestral power, Baby Blue knew what to do. He put on his bravest face and set out on a journey to find his mama.",
             },
             {
-                image: "scene7",
+                image: "scene8",
                 text: "Wherever she was, he knew she was counting on him!",
             },
         ];
@@ -173,8 +174,9 @@ export class StoryboardStart extends Scene implements ChangeableScene {
 
         // Text object
         this.storyText = this.add.text(textboxX + 24, textboxY + 24, "", {
-            fontSize: "20px",
+            fontSize: "30px",
             color: "#ffffff",
+            fontFamily: "ChickinFont",
             wordWrap: { width: textboxWidth - 48 },
         });
 
