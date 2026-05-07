@@ -5,9 +5,14 @@ export class GameOver extends Scene {
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     gameOverText: Phaser.GameObjects.Text;
+    returnTo!: string;
 
     constructor() {
         super("GameOver");
+    }
+
+    init(data: { returnTo: string }) {
+        this.returnTo = data.returnTo;
     }
 
     create() {
@@ -50,7 +55,7 @@ export class GameOver extends Scene {
             .setInteractive({ useHandCursor: true });
         retryLevelButton.on("pointerdown", () => {
             this.scene.stop("GameOver");
-            this.scene.start("Level1");
+            this.scene.start(this.returnTo);
         });
 
         EventBus.emit("current-scene-ready", this);

@@ -28,6 +28,8 @@ export class Level1 extends Scene {
         | Phaser.Sound.NoAudioSound
         | Phaser.Sound.HTML5AudioSound
         | Phaser.Sound.WebAudioSound;
+
+    //BETA CHANGE
     tutorialBox!: Phaser.GameObjects.Container;
     tutorialActive = true;
     tutorialTexts: string[] = [];
@@ -38,6 +40,7 @@ export class Level1 extends Scene {
         super("Level1");
     }
 
+    //BETA CHANGE
     advanceTutorial(dialogue: Phaser.GameObjects.Text) {
         if (!this.tutorialActive) return;
 
@@ -54,6 +57,7 @@ export class Level1 extends Scene {
         dialogue.setText(this.tutorialTexts[this.tutorialIndex]);
     }
 
+    //BETA CHANGE
     startTutorial() {
         this.tutorialActive = true;
         this.commandInput.disabled = true;
@@ -72,11 +76,23 @@ export class Level1 extends Scene {
         const dialogue = this.add
             .text(520, cam.height - 150, "", {
                 fontSize: "24px",
-                color: "#ffffff",
+                color: "floralwhite",
                 wordWrap: { width: 400 },
                 fontFamily: "ChickinFont",
             })
             .setScrollFactor(0);
+
+        const clickSpace = this.add.text(
+            520,
+            600,
+            "(Press Space to Continue)",
+            {
+                fontSize: "19px",
+                color: "floralwhite",
+                fontFamily: "ChickinFont",
+            },
+        );
+        clickSpace.alpha = 0.5;
 
         this.tutorialTexts = [
             "Hey kid, I'm Trina Rex. What, you've never seen a dinosaur with glasses before?",
@@ -88,7 +104,12 @@ export class Level1 extends Scene {
         ];
 
         dialogue.setText(this.tutorialTexts[0]);
-        this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
+        this.tutorialBox = this.add.container(0, 0, [
+            bg,
+            portrait,
+            dialogue,
+            clickSpace,
+        ]);
         this.input.keyboard!.on("keydown-SPACE", () => {
             this.advanceTutorial(dialogue);
         });
@@ -97,6 +118,7 @@ export class Level1 extends Scene {
         });
     }
 
+    //BETA CHANGE
     compTutorial() {
         this.input.removeAllListeners("pointerdown");
         this.input.keyboard!.removeAllListeners("keydown-SPACE");
@@ -170,11 +192,12 @@ export class Level1 extends Scene {
 
         const percent = this.health / this.maxHealth;
 
-        //black border
+        //black border BETA CHANGE
         const healthRect = this.add
             .rectangle(x + 100, y + 10, 200, 20)
             .setStrokeStyle(2, 0x000000);
         healthRect.setScrollFactor(0);
+
         // background (red/empty)
         this.healthBarBg.clear();
         this.healthBarBg.fillStyle(0xcf8782);
@@ -311,9 +334,11 @@ export class Level1 extends Scene {
     }
 
     processCommand(command: string) {
+        //BETA CHANGE
         const match = command.match(/node(\d+)->(next|prev)\s*=\s*node(\d+)/);
 
         if (!match) {
+            //BETA CHANGE
             const warn = this.add
                 .text(600, 700, "Invalid Input!", {
                     fontSize: "25px",
@@ -343,10 +368,31 @@ export class Level1 extends Scene {
         const fromPlatform = this.platformList.get(from);
         const toPlatform = this.platformList.get(to);
 
+        //BETA
+        const nextConnect = this.add
+            .text(toPlatform!.x, toPlatform!.y - 50, "Connection Made!", {
+                fontSize: "35px",
+                color: "#097000",
+                fontFamily: "ChickinFont",
+            })
+            .setOrigin(0.5);
+        nextConnect.setScrollFactor(0);
+
+        this.tweens.add({
+            targets: nextConnect,
+            alpha: 0, // Target alpha
+            duration: 2000,
+            ease: "Linear",
+            onComplete: () => {
+                nextConnect.destroy();
+            },
+        });
+
         if (!fromPlatform || !toPlatform) return;
         fromPlatform.setData(direction, toPlatform);
         fromPlatform.setData(direction, toPlatform);
 
+        //BETA CHANGE
         if (from === 1 && direction === "next" && to === 2) {
             this.didShowConnectionTutorial = true;
             this.compTutorial();
@@ -388,7 +434,7 @@ export class Level1 extends Scene {
         ) as Phaser.Physics.Arcade.Image;
         hayPlatform.setDisplaySize(150, 32).refreshBody();
 
-        //Background -
+        //BETA CHANGE
         this.add.rectangle(x, y, 150, 32).setStrokeStyle(2, 0xffffff);
 
         //Monitor movement of Blue onto the platform - test which platform he's on
@@ -428,6 +474,8 @@ export class Level1 extends Scene {
             frameWidth: 32,
             frameHeight: 42,
         });
+
+        //BETA CHANGE
         this.load.image("s1bg", "assets/stage1bg.png");
         this.load.image("trina", "assets/trina.png");
     }
@@ -498,7 +546,7 @@ export class Level1 extends Scene {
             }
         });
 
-        //texts
+        //texts, BETA CHANGE
         this.add.text(400, 230, "node1->next=node2", {
             fontSize: "25px",
             color: "#5a3604",
@@ -524,7 +572,6 @@ export class Level1 extends Scene {
         this.cameras.main.startFollow(this.player);
         this.camera.setBackgroundColor(0xffffff);
 
-        //Text Box
         const commandBox = this.add.dom(width / 2, height - 50).createFromHTML(`
             <input
                 type="text"
@@ -543,6 +590,7 @@ export class Level1 extends Scene {
         `);
         commandBox.setScrollFactor(0);
 
+        //BETA CHANGE
         const enter = document.getElementById(
             "commandBox",
         ) as HTMLInputElement | null;
@@ -553,6 +601,7 @@ export class Level1 extends Scene {
             if (event.key === "Enter") {
                 const value = enter.value;
                 this.processCommand(value); //HERE
+                //BETA CHANGE
                 enter.value = "";
             }
         });
@@ -641,7 +690,7 @@ export class Level1 extends Scene {
         retryLevelButton.on("pointerdown", () => {
             this.scene.restart();
         });
-        this.startTutorial();
+        this.startTutorial(); //beta change
 
         EventBus.emit("current-scene-ready", this);
     }
@@ -651,6 +700,7 @@ export class Level1 extends Scene {
         const speed = 2; // Adjust speed as needed
         const edgeMargin = 50; // Pixels from edge to trigger scroll
 
+        //BETA CHANGE
         if (this.tutorialActive) {
             this.player.setVelocity(0);
             return;
@@ -704,19 +754,11 @@ export class Level1 extends Scene {
 
         if (!this.currentPlatform) return;
 
-        const next = this.currentPlatform.getData(
-            "next",
-        ) as Phaser.Physics.Arcade.Image | null;
-
-        if (next) {
-            next.setTint(0x00ff00);
-        }
-
         if (this.health <= 0) {
             this.currentPlatform = undefined;
             this.player.setPosition(this.spawnx, this.spawny);
             this.scene.restart();
-            this.scene.start("GameOver");
+            this.scene.start("GameOver", { returnTo: "Level1" });
             this.physics.resume();
         }
     }
