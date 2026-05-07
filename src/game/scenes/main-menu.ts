@@ -31,7 +31,7 @@ export class MainMenu extends Scene implements ChangeableScene {
         bg.setDepth(-10);
 
         //Play Button
-        const playButton = this.add.text(450, 550, "Click To Play", {
+        const playButton = this.add.text(350, 550, "Click To Play", {
             fontSize: "70px",
             backgroundColor: "#af9165",
             fontFamily: "ChickinFont",

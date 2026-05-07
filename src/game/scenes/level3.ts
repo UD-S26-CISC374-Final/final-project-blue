@@ -104,7 +104,7 @@ export class Level3 extends Scene {
 
         this.tutorialTexts = [
             "Sometimes, you won't know what one of the values are, but you want to get it right anyway.",
-            "From what you know about using NEXT and PREV... can you equate Node1 to the white node... indirectly?",
+            "From what you know about using NEXT and PREV... can you equate Node1 and Node3 to the dark nodes... indirectly?",
             "Give it a go!",
         ];
 
@@ -121,6 +121,38 @@ export class Level3 extends Scene {
         this.input.on("pointerdown", () => {
             this.advanceTutorial(dialogue);
         });
+        this.tutorialBox.setDepth(10001);
+    }
+    isReachable(targetId: number): boolean {
+        if (!this.currentPlatform) return false;
+
+        const startId = [...this.platformList.entries()].find(
+            ([, p]) => p === this.currentPlatform,
+        )?.[0];
+
+        if (startId === undefined) return false;
+
+        const visited = new Set<number>();
+        const queue: number[] = [startId];
+
+        while (queue.length > 0) {
+            const current = queue.shift()!;
+            if (current === targetId) return true;
+
+            if (visited.has(current)) continue;
+            visited.add(current);
+
+            const node = this.platformList.get(current);
+            if (!node) continue;
+
+            const next = node.getData("next") as number | null;
+
+            if (next !== null && !visited.has(next)) {
+                queue.push(next);
+            }
+        }
+
+        return false;
     }
 
     //BETA CHANGE
@@ -322,6 +354,13 @@ export class Level3 extends Scene {
             const nextId = platform.getData("next") as number | null;
             const prevId = platform.getData("prev") as number | null;
 
+            if (prevId !== null) {
+                const prev = this.platformList.get(prevId);
+                if (prev && prev.body) {
+                    prev.body.enable = true;
+                }
+            }
+
             const next = nextId ? this.platformList.get(nextId) : null;
             const prev = prevId ? this.platformList.get(prevId) : null;
 
@@ -417,6 +456,16 @@ export class Level3 extends Scene {
             const resolved = this.resolveEndpoint(rhsNode, rhsDirection);
             to = resolved ?? rhsNode;
         }
+        const isDirect = !rhsDirection;
+
+        if (isDirect) {
+            const banKey = `${from}:${direction}:${rhsNode}`;
+
+            if (this.forbiddenConnections.has(banKey)) {
+                this.showWarn();
+                return;
+            }
+        }
 
         const fromPlatform = this.platformList.get(from);
         const toPlatform = this.platformList.get(to);
@@ -430,6 +479,12 @@ export class Level3 extends Scene {
 
         if (this.lockedConnections.has(lockKey)) {
             this.showWarn(); // or a custom message like "Connection is locked!"
+            return;
+        }
+        const forbiddenKey = `${from}:${direction}:${to}`;
+
+        if (this.forbiddenConnections.has(forbiddenKey)) {
+            this.showWarn();
             return;
         }
 
@@ -635,7 +690,7 @@ export class Level3 extends Scene {
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
         this.createItemOnPlatform(4, "key");
-        this.createItemOnPlatform(5, "key");
+        // this.createItemOnPlatform(5, "key");
         this.createFinishSlab(6);
         this.lockedConnections = new Set();
 
@@ -660,19 +715,41 @@ export class Level3 extends Scene {
 
         //Setting Forbidden Things
 
-        this.forbiddenConnections.add("1:next:2");
-        this.forbiddenConnections.add("1:prev:2");
-        this.forbiddenConnections.add("1:next:2");
+        this.forbiddenConnections.add("1:next:5");
 
         const node5 = this.platformList.get(5);
         const node2 = this.platformList.get(2);
+        const node6 = this.platformList.get(6);
+        const node4 = this.platformList.get(4);
+        const node3 = this.platformList.get(3);
+
+        if (node6 && node4 && node3) {
+            node6.setData("next", 4);
+            node4.setData("next", 6);
+
+            this.aliasMap.set(6, 4);
+            this.aliasMap.set(4, 6);
+            this.lockedConnections.add("6:next");
+            this.lockedConnections.add("4:next");
+        }
+
         if (node2) {
             this.add.rectangle(
                 node2.x,
                 node2.y,
                 150,
                 32,
-                0xffffff, // fill color
+                0x000000, // fill color
+                1, // alpha (transparency)
+            );
+        }
+        if (node4) {
+            this.add.rectangle(
+                node4.x,
+                node4.y,
+                150,
+                32,
+                0x000000, // fill color
                 1, // alpha (transparency)
             );
         }
@@ -682,6 +759,13 @@ export class Level3 extends Scene {
             this.aliasMap.set(5, 2);
             this.lockedConnections.add("5:prev");
         }
+        if (node2) {
+            node2.setData("next", 1);
+
+            this.aliasMap.set(5, 2);
+            this.lockedConnections.add("5:prev");
+        }
+
         this.drawAll();
         this.updatePlatformStates();
 
@@ -693,14 +777,44 @@ export class Level3 extends Scene {
                 const currItem = item as Phaser.Physics.Arcade.Image;
 
                 if (currItem.getData("collected")) return;
-
                 if (!this.currentPlatform) return;
 
-                const platform = this.currentPlatform;
+                // 🔥 FIND ITEM'S PLATFORM
+                const itemPlatform = [...this.platformList.entries()].find(
+                    ([, p]) => {
+                        const itemAtPlatform = this.items
+                            .getChildren()
+                            .some((i) => {
+                                const ip = i as Phaser.Physics.Arcade.Image;
+                                return (
+                                    ip === currItem &&
+                                    Math.abs(ip.x - p.x) < 5 &&
+                                    Math.abs(ip.y - p.y + 50) < 10
+                                );
+                            });
+                        return itemAtPlatform;
+                    },
+                )?.[1];
 
-                // ONLY require that player is standing on platform
-                if (!platform.body) return;
+                if (!itemPlatform) return;
 
+                // 🔥 GET IDS
+                const startId = [...this.platformList.entries()].find(
+                    ([, p]) => p === this.currentPlatform,
+                )?.[0];
+
+                const targetId = [...this.platformList.entries()].find(
+                    ([, p]) => p === itemPlatform,
+                )?.[0];
+
+                if (startId === undefined || targetId === undefined) return;
+
+                // ⭐ REAL CHECK: can current platform reach item platform?
+                const reachable = this.isReachable(targetId);
+
+                if (!reachable) return;
+
+                // ✅ collect
                 currItem.setData("collected", true);
                 currItem.disableBody(true, true);
 
@@ -713,16 +827,7 @@ export class Level3 extends Scene {
             },
             undefined,
             this,
-        );
-
-        // Disable ALL first
-        this.platformList.forEach((platform) => {
-            if (platform.body) {
-                platform.body.enable = false;
-            }
-        });
-
-        // Enable starting platform
+        ); // Enable starting platform
         const startPlatform = this.platformList.get(1);
 
         if (startPlatform && startPlatform.body) {
@@ -857,6 +962,15 @@ export class Level3 extends Scene {
         this.startTutorial(); //beta change
 
         EventBus.emit("current-scene-ready", this);
+        this.add.text(80, 30, "(Press Esc to Retry)", {
+            fontSize: "19px",
+            color: "floralwhite",
+            fontFamily: "ChickinFont",
+        });
+
+        this.input.keyboard!.on("keydown-ESC", () => {
+            this.scene.restart();
+        });
     }
 
     update() {
