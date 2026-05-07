@@ -427,12 +427,12 @@ export class Level2 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
-        this.createPlatform(this.spawnx, this.spawny + 150, 1);
-        this.createPlatform(this.spawnx + 400, this.spawny + 300, 2);
-        this.createPlatform(this.spawnx + 350, this.spawny + 50, 3);
-        this.createPlatform(this.spawnx + 740, this.spawny + 100, 4);
-        this.createPlatform(this.spawnx + 750, this.spawny + 250, 5);
-        this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
+       this.createPlatform(this.spawnx, this.spawny + 150, 1); 
+       this.createPlatform(this.spawnx + 400, this.spawny + 300, 2); 
+       this.createPlatform(this.spawnx + 350, this.spawny + 50, 3); 
+       this.createPlatform(this.spawnx + 740, this.spawny + 100, 4); 
+       this.createPlatform(this.spawnx + 750, this.spawny + 250, 5); 
+       this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
 
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
@@ -575,7 +575,7 @@ export class Level2 extends Scene {
         nextLevelButton.on("pointerdown", () => {
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.scene.start("Level2");
+                this.scene.start("Level3");
             });
         });
         const retryLevelButton = this.add
