@@ -46,7 +46,122 @@ export class Level4 extends Scene {
     }
 
     //BETA CHANGE
+    advanceTutorial(dialogue: Phaser.GameObjects.Text) {
+        if (!this.tutorialActive) return;
 
+        this.tutorialIndex++;
+
+        if (this.tutorialIndex >= this.tutorialTexts.length) {
+            this.tutorialBox.destroy();
+            this.tutorialActive = false;
+            this.commandInput.disabled = false;
+            this.commandInput.focus();
+
+            return;
+        }
+        dialogue.setText(this.tutorialTexts[this.tutorialIndex]);
+    }
+
+    //BETA CHANGE
+    startTutorial() {
+        this.tutorialActive = true;
+        this.commandInput.disabled = true;
+        const cam = this.cameras.main;
+
+        // dark overlay
+        const bg = this.add
+            .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
+            .setOrigin(0.5, 1)
+            .setScrollFactor(0);
+
+        // character portrait placeholder
+        const portrait = this.add.image(500, 400, "trina");
+
+        // dialogue text BETA ADD
+        const dialogue = this.add
+            .text(520, cam.height - 150, "", {
+                fontSize: "24px",
+                color: "floralwhite",
+                wordWrap: { width: 400 },
+                fontFamily: "ChickinFont",
+            })
+            .setScrollFactor(0);
+
+        const clickSpace = this.add.text(
+            520,
+            600,
+            "(Press Space to Continue)",
+            {
+                fontSize: "19px",
+                color: "floralwhite",
+                fontFamily: "ChickinFont",
+            },
+        );
+        clickSpace.alpha = 0.5;
+
+        this.tutorialTexts = [
+            "Sometimes, when moving multiple times from the original platform, it can help to be able to visualize the path to your destination.",
+            "To do this, create connections between platforms using ->next or ->prev to collect stars from each platform.",
+            "Use this level to visualize the path: node1->next->prev->next->next->prev->next->next->next->prev. End the level on the final platform for that sequence.",
+        ];
+
+        dialogue.setText(this.tutorialTexts[0]);
+        this.tutorialBox = this.add.container(0, 0, [
+            bg,
+            portrait,
+            dialogue,
+            clickSpace,
+        ]);
+        this.input.keyboard!.on("keydown-SPACE", () => {
+            this.advanceTutorial(dialogue);
+        });
+        this.input.on("pointerdown", () => {
+            this.advanceTutorial(dialogue);
+        });
+    }
+
+    //BETA CHANGE
+    compTutorial() {
+        this.input.removeAllListeners("pointerdown");
+        this.input.keyboard!.removeAllListeners("keydown-SPACE");
+        this.tutorialActive = true;
+        this.commandInput.disabled = true;
+        const cam = this.cameras.main;
+
+        // dark overlay
+        const bg = this.add
+            .rectangle(cam.width / 2, cam.height, cam.width, 180, 0x000000, 0.7)
+            .setOrigin(0.5, 1)
+            .setScrollFactor(0);
+
+        // character portrait placeholder
+        const portrait = this.add.image(1300, 400, "trina");
+
+        // dialogue text
+        const dialogue = this.add
+            .text(520, cam.height - 150, "", {
+                fontSize: "24px",
+                color: "#ffffff",
+                wordWrap: { width: 400 },
+                fontFamily: "ChickinFont",
+            })
+            .setScrollFactor(0);
+
+        this.tutorialIndex = 0;
+        this.tutorialTexts = [
+            "Great job!",
+            "That was a lot to keep track of, but you did it!",
+        ];
+
+        dialogue.setText(this.tutorialTexts[0]);
+        this.tutorialBox = this.add.container(0, 0, [bg, portrait, dialogue]);
+        this.input.keyboard!.on("keydown-SPACE", () => {
+            this.advanceTutorial(dialogue);
+        });
+        this.input.on("pointerdown", () => {
+            this.advanceTutorial(dialogue);
+        });
+    }
     showLevelComplete() {
         this.overlay.setVisible(true);
         this.overlay.setAlpha(0);
@@ -274,7 +389,7 @@ export class Level4 extends Scene {
         fromPlatform.setData(direction, toPlatform);
 
         //BETA CHANGE
-        if (from === 2 && direction === "prev" && to === 1) {
+        if (from === 7 && direction === "prev" && to === 6) {
             this.didShowConnectionTutorial = true;
             this.compTutorial();
         }
@@ -433,6 +548,9 @@ export class Level4 extends Scene {
 
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list
+        this.items = this.physics.add.staticGroup();
+        this.itemsCollected = 0;
+        this.totalItems = 0;
         this.health = 100;
         this.currentPlatform = undefined;
         this.spawnx = 100;
@@ -480,14 +598,14 @@ export class Level4 extends Scene {
 
         this.platforms = this.physics.add.staticGroup();
         //PLATFORMS ARE MADE HERE!!!
-	    this.createPlatform(this.spawnx, this.spawny + 150, 1); 
-	    this.createPlatform(this.spawnx + 400, this.spawny + 300, 2); 
-	    this.createPlatform(this.spawnx + 400, this.spawny + 100, 3); 
-	    this.createPlatform(this.spawnx + 750, this.spawny + 250, 4); 
-	    this.createPlatform(this.spawnx + 740, this.spawny + 100, 5); 
-	    this.createPlatform(this.spawnx + 1250, this.spawny + 550, 6);
-	    this.createPlatform(this.spawnx + 1500, this.spawny + 550, 7);
-	    this.createPlatform(this.spawnx + 1500, this.spawny + 400, 8);
+        this.createPlatform(this.spawnx, this.spawny + 250, 1);
+        this.createPlatform(this.spawnx + 225, this.spawny + 250, 2);
+        this.createPlatform(this.spawnx + 450, this.spawny + 250, 3);
+        this.createPlatform(this.spawnx + 675, this.spawny + 250, 4);
+        this.createPlatform(this.spawnx + 900, this.spawny + 250, 5);
+        this.createPlatform(this.spawnx + 1125, this.spawny + 250, 6);
+        this.createPlatform(this.spawnx + 1350, this.spawny + 250, 7);
+        this.createPlatform(this.spawnx + 1575, this.spawny + 250, 8);
 
         this.createItemOnPlatform(2, "key");
         this.createItemOnPlatform(3, "key");
@@ -495,7 +613,10 @@ export class Level4 extends Scene {
         this.createItemOnPlatform(5, "key");
         this.createItemOnPlatform(6, "key");
         this.createItemOnPlatform(7, "key");
-        this.createFinishSlab(6);
+        this.createFinishSlab(8);
+
+        //this.createUIIcons();
+        this.updateUI();
 
         //to collect time, BETA CHANGE
         this.physics.add.overlap(
@@ -546,11 +667,16 @@ export class Level4 extends Scene {
         });
 
         //texts, BETA CHANGE
-        this.add.text(400, 230, "node1->prev=node2", {
-            fontSize: "25px",
-            color: "#5a3604",
-            fontFamily: "ChickinFont",
-        });
+        this.add.text(
+            500,
+            500,
+            "node1->next->next->next->prev->next->next->next->prev->next->next->prev",
+            {
+                fontSize: "25px",
+                color: "#5a3604",
+                fontFamily: "ChickinFont",
+            },
+        );
         // this.add.text(530, 320, "Use arrow keys to move", {
         //     fontSize: "25px",
         //     color: "#5a3604",
@@ -666,7 +792,7 @@ export class Level4 extends Scene {
         nextLevelButton.on("pointerdown", () => {
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once("camerafadeoutcomplete", () => {
-                this.scene.start("Level4");
+                this.scene.start("Level4"); //RESETS TO 4 FOR NOW, CHANGE LATER WHEN 5 IS MADE!
             });
         });
         const retryLevelButton = this.add
