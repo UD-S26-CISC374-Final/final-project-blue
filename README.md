@@ -44,8 +44,8 @@ Link to our [egdd](https://github.com/soffie-chan/egdd/blob/main/index.md)
 		* [We Shop Song](https://youtu.be/Y-6Plfn1yHg?si=9cv9nt2ZHtV9GYF2)
 		* The music above was not modified when used. [Click to view the Creative Commons License.](https://creativecommons.org/licenses/by/3.0/)
 
-	- Kuukiko - Sunrise of Youth
-		* The music above was cut to half its size when used (0:36-1:13). [Click to view the Creative Commons License.](https://youtu.be/MC_rB594VsM?si=W5es5VevozpmChuq]
+	- [Kuukiko - Sunrise of Youth](https://youtu.be/MC_rB594VsM?si=W5es5VevozpmChuq)
+		* The music above was cut to half its size when used (0:36-1:13). [Click to view the Creative Commons License.](https://creativecommons.org/licenses/by/3.0/)
 
 + Font
 	- []
