@@ -1,9 +1,9 @@
 {
-    "name": "final-project",
+    "name": "linkin-chickin",
     "version": "5.0.0",
     "type": "module",
-    "description": "CISC374 Project",
-    "homepage": "https://github.com/UD-S26-CISC374/final-project-template#readme",
+    "description": "This is a game made as part of UD's CISC374 - Educational Game Development course. It teaches basic linked list terminologies and connections in a visual format.",
+    "homepage": "https://github.com/UD-S26-CISC374-Final/final-project-blue#readme",
     "scripts": {
         "dev": "vite --config vite/config.dev.mjs",
         "build": "tsc -b && vite build --config vite/config.prod.mjs",
@@ -22,7 +22,12 @@
         "html5 game",
         "TypeScript",
         "webpack",
-        "starter"
+        "starter",
+        "linked list",
+        "video game",
+        "web game",
+        "linkin' chickin",
+        "CISC374"
     ],
     "author": {
         "name": "Austin Cory Bart",
@@ -30,7 +35,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/UD-S26-CISC374/final-project-template.git"
+        "url": "https://github.com/UD-S26-CISC374-Final/final-project-blue"
     },
     "license": "MIT",
     "dependencies": {
