@@ -4,4 +4,6 @@
 
 # Gameplay Video
 
-[![Watch gameplay](docs/small.png)](https://drive.google.com/file/d/1NmzLcElNQjzGROCOwsO6aFzrPUna0JIN/view?usp=sharing)
+[![Watch gameplay](./small.png)](https://drive.google.com/file/d/1NmzLcElNQjzGROCOwsO6aFzrPUna0JIN/view?usp=sharing)
+
+Click to watch the video!
