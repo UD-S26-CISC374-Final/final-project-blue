@@ -29,7 +29,7 @@ Connect platforms by entering the right commands into the command box - you can 
 
 # Gameplay Video
 
-<iframe src="https://drive.google.com/file/d/1NmzLcElNQjzGROCOwsO6aFzrPUna0JIN/preview" width="640" height="480"></iframe>
+[![Watch gameplay](docs/small.png)](https://drive.google.com/file/d/1NmzLcElNQjzGROCOwsO6aFzrPUna0JIN/view?usp=sharing)
 
 # Educational Game Design Document
 
