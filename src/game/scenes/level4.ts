@@ -1,5 +1,6 @@
 import { EventBus } from "../event-bus";
 import { Scene } from "phaser";
+import { DEFAULT_JUMP_VELOCITY } from "./level";
 
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
@@ -34,12 +35,16 @@ export class Level4 extends Scene {
     finishSlab!: Phaser.Physics.Arcade.Image;
     uiIcons: Phaser.GameObjects.Image[] = [];
 
+    // Tutorial-related properties (used by this level)
     tutorialBox!: Phaser.GameObjects.Container;
-    tutorialActive = true;
+    tutorialActive = false;
     tutorialTexts: string[] = [];
     tutorialIndex = 0;
     commandInput!: HTMLInputElement;
-    didShowConnectionTutorial: boolean;
+    didShowConnectionTutorial = false;
+
+    // Item tracking
+    itemsCollected = 0;
 
     constructor() {
         super("Level4");
@@ -101,8 +106,8 @@ export class Level4 extends Scene {
 
         this.tutorialTexts = [
             "Sometimes, when moving multiple times from the original platform, it can help to be able to visualize the path to your destination.",
-            "To do this, create connections between platforms using ->next or ->prev to collect stars from each platform.",
-            "Use this level to visualize the path: node1->next->prev->next->next->prev->next->next->next->prev. End the level on the final platform for that sequence.",
+            "To do this, create connections between platforms using .next or .prev to collect stars from each platform.",
+            "Use this level to visualize the path: node1.next.prev.next.next.prev.next.next.next.prev. End the level on the final platform for that sequence.",
         ];
 
         dialogue.setText(this.tutorialTexts[0]);
@@ -854,7 +859,7 @@ export class Level4 extends Scene {
         }
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
-            this.player.setVelocityY(-330);
+            this.player.setVelocityY(DEFAULT_JUMP_VELOCITY);
         }
 
         //Fall + Respawn

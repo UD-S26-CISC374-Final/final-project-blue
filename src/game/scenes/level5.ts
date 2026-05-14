@@ -1,5 +1,6 @@
 import { EventBus } from "../event-bus";
 import { Scene } from "phaser";
+import { DEFAULT_JUMP_VELOCITY } from "./level";
 
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
@@ -758,7 +759,7 @@ export class Level5 extends Scene {
         }
 
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
-            this.player.setVelocityY(-230);
+            this.player.setVelocityY(DEFAULT_JUMP_VELOCITY);
         }
 
         //Fall + Respawn

@@ -1,5 +1,6 @@
 import { EventBus } from "../event-bus";
 import { Scene } from "phaser";
+import { DEFAULT_JUMP_VELOCITY } from "./level";
 
 import PhaserLogo from "../objects/phaser-logo";
 import FpsText from "../objects/fps-text";
@@ -101,8 +102,8 @@ export class Level6 extends Scene {
 
         this.tutorialTexts = [
             "Sometimes, when traversing a link list, you may have to insert a new value.",
-            "To do this, you can use ->next from your current node to the next node you want to add,",
-            "Use node1->next=node2 in order to insert node2 after node1, to bridge a gap in this list.",
+            "To do this, you can use .next from your current node to the next node you want to add,",
+            "Use node1.next=node2 in order to insert node2 after node1, to bridge a gap in this list.",
             "Don't forget to still collect all the stars on your way to the last platform!",
         ];
 
@@ -861,9 +862,8 @@ export class Level6 extends Scene {
             this.player.setVelocityX(0);
             this.player.anims.play("turn");
         }
-        t;
         if (this.cursors.up.isDown && this.player.body!.touching.down) {
-            this.player.setVelocityY(-330);
+            this.player.setVelocityY(DEFAULT_JUMP_VELOCITY);
         }
 
         //Fall + Respawn
