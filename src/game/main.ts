@@ -6,6 +6,7 @@ import { Level3 } from "./scenes/level3";
 import { Level4 } from "./scenes/level4";
 import { Level5 } from "./scenes/level5";
 import { Level6 } from "./scenes/level6";
+import { Level7 } from "./scenes/level7";
 import { Level10 } from "./scenes/level10";
 import { Level11 } from "./scenes/level11";
 import { MainMenu } from "./scenes/main-menu";
@@ -32,6 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Level4,
         Level5,
         Level6,
+        Level7,
         Level10,
         Level11,
         GameOver,
