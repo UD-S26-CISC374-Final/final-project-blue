@@ -386,6 +386,16 @@ export class Level2 extends Scene {
         });
 
         if (!fromPlatform || !toPlatform) return;
+        // if (direction === "next" && fromPlatform <= fromX) {
+        //     this.showError("NEXT must point to a platform on the right!");
+        //     return;
+        // }
+
+        // // PREV must go left
+        // if (direction === "prev" && toX >= fromX) {
+        //     this.showError("PREV must point to a platform on the left!");
+        //     return;
+        // }
         fromPlatform.setData(direction, toPlatform);
 
         //BETA CHANGE
@@ -526,6 +536,7 @@ export class Level2 extends Scene {
 
     preload() {
         this.load.audio("tweet", "assets/tweet.mp3");
+        this.load.audio("s1bgmusic", "assets/s1music.m4a");
         this.load.image("hay", "assets/hay.png");
         this.load.spritesheet("dude", "assets/dude.png", {
             frameWidth: 32,
@@ -545,6 +556,7 @@ export class Level2 extends Scene {
         s1bg.setDepth(-10);
         s1bg.setDisplaySize(1800, 700);
         s1bg.setScale(1.1);
+        // Add the music to the scene
 
         this.lines = this.add.graphics();
         this.platformList = new Map(); //New list

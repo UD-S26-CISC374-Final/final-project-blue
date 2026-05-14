@@ -10,7 +10,18 @@ export class StoryboardStart extends Scene implements ChangeableScene {
     background!: GameObjects.Image;
     textbox!: GameObjects.Graphics;
     currentStep: number = 0;
+    currentMusic?: Phaser.Sound.BaseSound;
     typingEvent?: Phaser.Time.TimerEvent;
+    musicForScene: Record<string, string | null> = {
+        scene1: "music1",
+        scene2: "music1",
+        scene3: "music1",
+        scene4: "music1",
+        scene5: "music1",
+        scene6: null, // ← music stops HERE
+        scene7: "music2", // ← new music starts HERE
+        scene8: "music2",
+    };
 
     constructor() {
         super("StoryboardStart");
@@ -49,17 +60,18 @@ export class StoryboardStart extends Scene implements ChangeableScene {
         this.currentStep++;
 
         if (this.currentStep >= this.storySteps.length) {
-            // Go to game
+            this.scale.startFullscreen();
+            this.sound.stopAll();
+            this.game.sound.stopAll(); // ← important
             this.scene.start("Level1");
             return;
         }
 
+        this.handleMusicByStep(this.currentStep);
+
         const step = this.storySteps[this.currentStep];
 
-        // Change image
         this.background.setTexture(step.image);
-
-        // Type next line
         this.typeText(step.text);
     }
 
@@ -72,6 +84,52 @@ export class StoryboardStart extends Scene implements ChangeableScene {
         this.load.image("scene6", "assets/scene6.png");
         this.load.image("scene7", "assets/scene7.png");
         this.load.image("scene8", "assets/scene8.png");
+        this.load.audio("music1", "assets/storymainmusic.mp3");
+        this.load.audio("music2", "assets/storysubmusic.mp3");
+    }
+    startMusic(key: string, loop = true) {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+            this.currentMusic.destroy();
+            this.currentMusic = undefined;
+        }
+
+        const sound = this.sound.add(key, {
+            loop,
+            volume: 0.5,
+        });
+
+        sound.play();
+
+        this.currentMusic = sound;
+    }
+
+    stopMusic() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+            this.currentMusic.destroy();
+            this.currentMusic = undefined;
+        }
+    }
+
+    handleMusicByStep(step: number) {
+        const image = this.storySteps[step].image;
+        const desiredMusic = this.musicForScene[image];
+
+        // If null → stop music
+        if (desiredMusic === null) {
+            this.stopMusic();
+            return;
+        }
+
+        // If undefined → no music rule for this scene
+        if (!desiredMusic) return;
+
+        // If already playing this track → do nothing
+        if (this.currentMusic?.key === desiredMusic) return;
+
+        // Otherwise start the new track
+        this.startMusic(desiredMusic);
     }
 
     create() {
@@ -150,6 +208,7 @@ export class StoryboardStart extends Scene implements ChangeableScene {
         ];
 
         this.currentStep = 0;
+        this.handleMusicByStep(this.currentStep);
 
         // Background image
         this.background = this.add
@@ -196,6 +255,8 @@ export class StoryboardStart extends Scene implements ChangeableScene {
             this.logoTween = null;
         }
         this.scale.startFullscreen();
+        this.sound.stopAll();
+        this.game.sound.stopAll(); // ← important
         this.scene.start("Level1");
     }
 }
