@@ -7,6 +7,7 @@ import { Level4 } from "./scenes/level4";
 import { Level5 } from "./scenes/level5";
 import { Level6 } from "./scenes/level6";
 import { Level10 } from "./scenes/level10";
+import { Level11 } from "./scenes/level11";
 import { MainMenu } from "./scenes/main-menu";
 import { StoryboardStart } from "./scenes/storyboard-start";
 import { AUTO, Game } from "phaser";
@@ -32,6 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Level5,
         Level6,
         Level10,
+        Level11,
         GameOver,
     ],
     scale: {
